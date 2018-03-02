@@ -3,7 +3,6 @@ import PanelGroup from 'react-panelgroup';
 
 class AppWorkspace extends Component {
     render() {
-        console.log(this.props);
         return (
             <PanelGroup className="app-main-view" 
                         direction="row" 

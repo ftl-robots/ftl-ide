@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import './App.css';
-import '@blueprintjs/core/lib/css/blueprint.css';
+import '@blueprintjs/core/dist/blueprint.css';
 
 import Header from './components/Header/Header';
 import AppRoot from './components/AppRoot/AppRoot';

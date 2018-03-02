@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { Router, Route, browserHistory } from 'react-router';
 
 import AppSplash from '../AppSplash/AppSplash';
 import AppMain from '../AppMain/AppMain';
@@ -7,11 +7,10 @@ import AppMain from '../AppMain/AppMain';
 class AppRoot extends Component {
     render() {
         return (
-            <Router>
-                <Switch>
-                    <Route exact path="/" component={AppSplash}/>
-                    <Route path="/workspace/:workspaceId" component={AppMain}/>
-                </Switch>
+            <Router history={browserHistory}>
+                <Route path="/" component={AppSplash}/>
+                <Route path="/workspace/:workspaceId" component={AppMain}/>
+                
             </Router>
         )
     }

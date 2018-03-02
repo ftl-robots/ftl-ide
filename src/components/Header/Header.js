@@ -9,9 +9,9 @@ class Header extends Component {
                     <NavbarHeading>FTL IDE</NavbarHeading>
                 </NavbarGroup>
                 <NavbarGroup align="right">
-                    <Button className="pt-minimal" icon="user"></Button>
-                    <Button className="pt-minimal" icon="notifications"></Button>
-                    <Button className="pt-minimal" icon="cog"></Button>
+                    <Button className="pt-minimal" iconName="user"></Button>
+                    <Button className="pt-minimal" iconName="notifications"></Button>
+                    <Button className="pt-minimal" iconName="cog"></Button>
                 </NavbarGroup>
             </Navbar>
         )

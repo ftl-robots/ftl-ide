@@ -9,7 +9,7 @@ class AppMain extends Component {
         return (
             <div className="app-main-view-root">
                 <AppWorkspace />
-                <StatusBar workspaceId={this.props.match.params.workspaceId}/>
+                <StatusBar workspaceId={this.props.params.workspaceId}/>
             </div>
         );
     }
