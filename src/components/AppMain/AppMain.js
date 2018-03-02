@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 
 import './AppMain.css';
-import AppWorkspace from '../AppWorkspace';
-import StatusBar from '../StatusBar';
+import AppWorkspace from '../AppWorkspace/AppWorkspace';
+import StatusBar from '../StatusBar/StatusBar';
 
 class AppMain extends Component {
     render() {

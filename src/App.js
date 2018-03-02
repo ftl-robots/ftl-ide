@@ -1,10 +1,9 @@
 import React, { Component } from 'react';
-import PanelGroup from 'react-panelgroup';
 import './App.css';
 import '@blueprintjs/core/lib/css/blueprint.css';
 
-import Header from './components/Header';
-import AppRoot from './components/AppRoot';
+import Header from './components/Header/Header';
+import AppRoot from './components/AppRoot/AppRoot';
 
 class App extends Component {
     render() {

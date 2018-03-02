@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 
-import AppSplash from '../AppSplash';
-import AppMain from '../AppMain';
+import AppSplash from '../AppSplash/AppSplash';
+import AppMain from '../AppMain/AppMain';
 
 class AppRoot extends Component {
     render() {
