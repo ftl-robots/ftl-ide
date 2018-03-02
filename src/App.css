@@ -9,6 +9,6 @@
     flex-direction: column;
 }
 
-#app-main {
+.app-main-view {
     flex: 1 0 auto;
 }
