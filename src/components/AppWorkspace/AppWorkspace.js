@@ -4,24 +4,33 @@ import PanelGroup from 'react-panelgroup';
 class AppWorkspace extends Component {
     render() {
         return (
-            <PanelGroup className="app-main-view" 
-                        direction="row" 
-                        borderColor="grey" 
-                        panelWidths={[
-                            { size: 200, minSize: 50, resize: 'dynamic'},
-                            { minSize: 100, resize: 'stretch'}
-                        ]}>
-                <div>Sidebar</div>
-                <PanelGroup direction="column" 
-                            borderColor="grey"
+            <div className="app-main-view-workspace">
+                <PanelGroup direction="row" 
+                            borderColor="grey" 
                             panelWidths={[
-                                { minSize: 200, resize: 'stretch'},
-                                { size: 200, minSize: 50, resize: 'dynamic'}  
-                            ]}>
-                    <div>Main Area</div>
-                    <div>Console</div>
+                                { size: 200, minSize: 50},
+                                { minSize: 100}
+                            ]}
+                            style={{
+                                height: 'unset',
+                                position: 'absolute',
+                                top: 0,
+                                left:0,
+                                right:0,
+                                bottom: 0
+                            }}>
+                    <div>Sidebar</div>
+                    <PanelGroup direction="column" 
+                                borderColor="grey"
+                                panelWidths={[
+                                    { minSize: 200, resize: 'stretch'},
+                                    { size: 200, minSize: 50, resize: 'dynamic'}  
+                                ]}>
+                        <div>Main Area</div>
+                        <div>Console</div>
+                    </PanelGroup>
                 </PanelGroup>
-            </PanelGroup>
+            </div>
         )
     }
 }
