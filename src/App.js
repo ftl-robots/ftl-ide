@@ -1,21 +1,18 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import PanelGroup from 'react-panelgroup';
 
 class App extends Component {
-  render() {
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.js</code> and save to reload.
-        </p>
-      </div>
-    );
-  }
+    render() {
+        return (
+            <div style={{height:"100%"}}>
+                <PanelGroup borderColor="grey">
+                    <div>Panel 1</div>
+                    <div>Panel 2</div>
+                    <div>Panel 3</div>
+                </PanelGroup>
+            </div>
+        );
+    }
 }
 
 export default App;

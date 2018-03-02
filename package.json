@@ -3,10 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@blueprintjs/core": "^2.0.0-rc.2",
     "express": "^4.16.2",
     "react": "^16.2.0",
+    "react-addons-css-transition-group": "^15.6.2",
     "react-dom": "^16.2.0",
-    "react-scripts": "1.1.1"
+    "react-panelgroup": "^1.0.5",
+    "react-scripts": "1.1.1",
+    "react-treebeard": "^2.1.0"
   },
   "scripts": {
     "start": "react-scripts start",
