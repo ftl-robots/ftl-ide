@@ -27,12 +27,10 @@ class ProjectCreatorDialog extends Component {
     }
 
     handleNewProjectTypeSubmit(event) {
-        alert("New Project: " + this.state.newProjectType);
         event.preventDefault();
     }
 
     handleSelectedProjectSubmit(event) {
-        alert("Selected Project: " + this.state.selectedProject);
         window.location = "/workspace/" + this.state.selectedProject;
         event.preventDefault();
     }
