@@ -11,7 +11,7 @@ class AppWorkspace extends Component {
                 <PanelGroup direction="row" 
                             borderColor="grey" 
                             panelWidths={[
-                                { size: 200, minSize: 50},
+                                { size: 250, minSize: 50},
                                 { minSize: 100}
                             ]}
                             style={{
