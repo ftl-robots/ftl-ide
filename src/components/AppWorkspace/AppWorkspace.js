@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 import PanelGroup from 'react-panelgroup';
 
+import AppConsole from '../AppConsole/AppConsole';
+import Sidebar from '../Sidebar/Sidebar';
+
 class AppWorkspace extends Component {
     render() {
         return (
@@ -19,7 +22,7 @@ class AppWorkspace extends Component {
                                 right:0,
                                 bottom: 0
                             }}>
-                    <div>Sidebar</div>
+                    <Sidebar />
                     <PanelGroup direction="column" 
                                 borderColor="grey"
                                 panelWidths={[
@@ -27,7 +30,7 @@ class AppWorkspace extends Component {
                                     { size: 200, minSize: 50, resize: 'dynamic'}  
                                 ]}>
                         <div>Main Area</div>
-                        <div>Console</div>
+                        <AppConsole />
                     </PanelGroup>
                 </PanelGroup>
             </div>
