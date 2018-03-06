@@ -30,11 +30,15 @@
     width: 100%;
 }
 
-#pt-tab-panel_sidebar-tabs_sidebar-files > ul {
+#pt-tab-panel_sidebar-tabs_sidebar-files > div > ul {
     background-color: #111111 !important;
 }
 
 #pt-tab-panel_sidebar-tabs_sidebar-files ul {
     margin-top: 0;
     margin-bottom: 0;
+}
+
+.sidebar-item-header {
+    margin: 10px;
 }

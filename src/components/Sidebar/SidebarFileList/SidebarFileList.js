@@ -2,7 +2,10 @@ import React, { Component } from 'react';
 import { Treebeard, decorators } from 'react-treebeard';
 
 decorators.Header =({style, node}) => {
-    const iconType = node.children ? (node.toggled ? 'folder-open':'folder-close') : 'document';
+    const iconType = node.id === 'root' ? 'projects' :
+                        (node.children ? 
+                            (node.toggled ? 'folder-open':'folder-close') : 
+                            'document');
     
     return (
         <div style={style.base}>
@@ -16,28 +19,22 @@ decorators.Header =({style, node}) => {
 };
 
 const data = {
-    name: 'root',
+    name: 'test-wkspace',
+    id: 'root',
     toggled: true,
     children: [
         {
-            name: 'parent',
-            children: [
-                { name: 'child1' },
-                { name: 'child2' }
-            ]
-        },
-        {
-            name: 'parent',
+            name: 'ftlrobot',
             children: [
                 {
-                    name: 'nested parent',
+                    name: 'robot',
                     children: [
-                        { name: 'nested child 1' },
-                        { name: 'nested child 2' }
+                        { name: 'Robot.java'}
                     ]
                 }
             ]
-        }
+        },
+        
     ]
 };
 
@@ -65,7 +62,7 @@ class SidebarFileList extends Component {
         if(node.children) { 
             node.toggled = toggled; 
         }
-        
+
         this.setState({ cursor: node });
     }
 
@@ -73,7 +70,10 @@ class SidebarFileList extends Component {
         
 
         return (
-            <Treebeard className="sidebar-file-list" data={data} onToggle={this.handleToggle.bind(this)} decorators={decorators}/>
+            <div>
+                <div className="sidebar-item-header">FILES</div>
+                <Treebeard className="sidebar-file-list" data={data} onToggle={this.handleToggle.bind(this)} decorators={decorators}/>
+            </div>
         );
     }
 }
