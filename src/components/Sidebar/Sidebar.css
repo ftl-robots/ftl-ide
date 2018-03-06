@@ -7,10 +7,34 @@
     background: #111111;
 }
 
-.sidebar-tabs {
+.pt-tabs.sidebar-tabs {
     position: absolute;
     top: 0;
-    bottom: 0;
     left: 0;
+    bottom: 0;
     right: 0;
+}
+
+.sidebar-tabs > .pt-tab-list {
+    background: #050505;
+    width: 40px;
+    overflow-x: none;
+}
+
+.sidebar-tabs > .pt-tab-list > .pt-tab-indicator-wrapper {
+    width: 40px;
+}
+
+.pt-tabs.sidebar-tabs > .pt-tab-panel {
+    padding-left: 0;
+    width: 100%;
+}
+
+#pt-tab-panel_sidebar-tabs_sidebar-files > ul {
+    background-color: #111111 !important;
+}
+
+#pt-tab-panel_sidebar-tabs_sidebar-files ul {
+    margin-top: 0;
+    margin-bottom: 0;
 }
