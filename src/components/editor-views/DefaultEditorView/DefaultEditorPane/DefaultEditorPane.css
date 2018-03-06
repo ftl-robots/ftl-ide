@@ -1,12 +1,24 @@
 .default-editor-pane {
     display: flex;
     flex-direction: column;
-
-    flex: 1 0 auto;
-
     background: #222222;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 40px;
+    bottom: 0;
 }
 
 .default-editor-pane-editor-root {
+    position: relative;
     flex: 1 0 auto;
+}
+
+.default-editor-pane-editor-root .react-monaco-editor-container {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 }

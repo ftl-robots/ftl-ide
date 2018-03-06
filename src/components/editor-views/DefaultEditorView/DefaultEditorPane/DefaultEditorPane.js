@@ -14,9 +14,11 @@ class DefaultEditorPane extends Component {
         return (
             <div className="default-editor-pane">
                 <FilePathView filePath={"root/meh/hi.java"}/>
-                <MonacoEditor theme="vs-dark"
-                              options={editorOptions}
-                              className="default-editor-pane-editor-root" />
+                <div className="default-editor-pane-editor-root">
+                    <MonacoEditor theme="vs-dark"
+                              options={editorOptions}/>
+                </div>
+                
             </div>
         );
     }
