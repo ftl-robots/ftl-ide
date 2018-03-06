@@ -1,0 +1,12 @@
+.default-editor-pane {
+    display: flex;
+    flex-direction: column;
+
+    flex: 1 0 auto;
+
+    background: #222222;
+}
+
+.default-editor-pane-editor-root {
+    flex: 1 0 auto;
+}
