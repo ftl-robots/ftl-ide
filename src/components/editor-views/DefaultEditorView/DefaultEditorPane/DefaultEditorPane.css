@@ -1,7 +1,7 @@
 .default-editor-pane {
     display: flex;
     flex-direction: column;
-    background: #222222;
+    background: #252526;
 
     position: absolute;
     top: 0;
@@ -17,8 +17,14 @@
 
 .default-editor-pane-editor-root .react-monaco-editor-container {
     position: absolute;
-    top: 0;
+    top: 5px;
     bottom: 0;
     left: 0;
     right: 0;
+}
+
+.default-editor-panel-file-path {
+    background: #252526;
+    padding-left: 10px;
+    padding-bottom: 5px;
 }

@@ -4,7 +4,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: #111111;
+    background: #252526;
 }
 
 .pt-tabs.sidebar-tabs {
@@ -16,7 +16,7 @@
 }
 
 .sidebar-tabs > .pt-tab-list {
-    background: #050505;
+    background: #333333;
     width: 40px;
     overflow-x: none;
 }
@@ -31,7 +31,7 @@
 }
 
 #pt-tab-panel_sidebar-tabs_sidebar-files > div > ul {
-    background-color: #111111 !important;
+    background-color: #252526 !important;
 }
 
 #pt-tab-panel_sidebar-tabs_sidebar-files ul {
