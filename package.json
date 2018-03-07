@@ -4,8 +4,10 @@
   "private": true,
   "dependencies": {
     "@blueprintjs/core": "1.35.1",
+    "body-parser": "^1.18.2",
     "classnames": "^2.2.5",
     "express": "^4.16.2",
+    "moniker": "^0.1.2",
     "react": "^16.2.0",
     "react-addons-css-transition-group": "^15.6.2",
     "react-dom": "^16.2.0",
