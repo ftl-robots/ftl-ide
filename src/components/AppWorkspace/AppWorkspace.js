@@ -4,7 +4,7 @@ import PanelGroup from 'react-panelgroup';
 import AppConsole from '../AppConsole/AppConsole';
 import Sidebar from '../Sidebar/Sidebar';
 
-import DefaultEditorView from '../editor-views/DefaultEditorView/DefaultEditorView';
+import DefaultEditor from '../editor-views/DefaultEditor/DefaultEditor';
 
 import './AppWorkspace.css';
 
@@ -33,7 +33,7 @@ class AppWorkspace extends Component {
                                     { minSize: 200, resize: 'stretch'},
                                     { size: 200, minSize: 50, resize: 'dynamic'}  
                                 ]}>
-                        <DefaultEditorView />
+                        <DefaultEditor />
                         <AppConsole />
                     </PanelGroup>
                 </PanelGroup>

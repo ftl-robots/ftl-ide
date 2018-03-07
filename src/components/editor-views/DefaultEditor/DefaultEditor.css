@@ -18,3 +18,7 @@
     bottom: 0;
     right: 0;
 }
+
+.default-editor-view-sidebar .pt-popover-target {
+    text-align: center;
+}
