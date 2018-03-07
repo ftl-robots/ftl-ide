@@ -51,6 +51,18 @@ router.route('/projects/:project_id')
             });
         }
     });
+router.route('/projects/:project_id/files')
+    .get((req, res) => {
+        console.log('Getting files for ' + req.params.project_id);
+        res.json({ message: 'ok' });
+    })
+
+    router.route('/projects/:project_id/files/:file_path')
+    .get((req, res) => {
+        // NOTE Filepath needs to be URL Encoded
+        console.log('Getting filepath for ' + req.params.project_id + '/' + req.params.file_path);
+        res.json({ message: 'ok' });
+    })
 
 app.use('/api', router);
 
