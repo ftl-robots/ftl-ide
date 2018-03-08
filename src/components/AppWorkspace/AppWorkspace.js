@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PanelGroup from 'react-panelgroup';
+import { NonIdealState } from '@blueprintjs/core';
 
 import AppConsole from '../AppConsole/AppConsole';
 import Sidebar from '../Sidebar/Sidebar';
@@ -10,6 +11,22 @@ import './AppWorkspace.css';
 
 class AppWorkspace extends Component {
     render() {
+        var editorView;
+        if (this.props.loadedFile) {
+            editorView = <DefaultEditor loadedFile={this.props.loadedFile}/>
+        }
+        else {
+            editorView = (
+                <div className="no-file-loaded">
+                    <NonIdealState
+                        className="pt-dark"
+                        visual="document"
+                        title="No file loaded"
+                        description="Pick a file from the file explorer"
+                    />
+                </div>
+            );
+        }
         return (
             <div className="app-main-view-workspace">
                 <PanelGroup direction="row" 
@@ -33,7 +50,8 @@ class AppWorkspace extends Component {
                                     { minSize: 200, resize: 'stretch'},
                                     { size: 200, minSize: 50, resize: 'dynamic'}  
                                 ]}>
-                        <DefaultEditor />
+                        
+                        {editorView}
                         <AppConsole />
                     </PanelGroup>
                 </PanelGroup>
