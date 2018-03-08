@@ -10,10 +10,30 @@ import DefaultEditor from '../editor-views/DefaultEditor/DefaultEditor';
 import './AppWorkspace.css';
 
 class AppWorkspace extends Component {
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            loadedFile: null
+        };
+
+        this.onFileSelected = this.onFileSelected.bind(this);
+    }
+
+    onFileSelected(event) {
+        console.log(event);
+        this.setState({
+            loadedFile: {
+                filePath: event
+            }
+
+        })
+    }
+
     render() {
         var editorView;
-        if (this.props.loadedFile) {
-            editorView = <DefaultEditor loadedFile={this.props.loadedFile}/>
+        if (this.state.loadedFile) {
+            editorView = <DefaultEditor loadedFile={this.state.loadedFile}/>
         }
         else {
             editorView = (
@@ -43,7 +63,7 @@ class AppWorkspace extends Component {
                                 right:0,
                                 bottom: 0
                             }}>
-                    <Sidebar />
+                    <Sidebar onFileSelected={this.onFileSelected}/>
                     <PanelGroup direction="column" 
                                 borderColor="grey"
                                 panelWidths={[

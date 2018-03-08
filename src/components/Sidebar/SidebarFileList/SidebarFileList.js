@@ -63,6 +63,13 @@ class SidebarFileList extends Component {
             node.toggled = toggled; 
         }
 
+        if (!node.children) {
+            // it's a root node
+            if (this.props.onFileSelected) {
+                this.props.onFileSelected("ftlrobots/robot/Robot.java");
+            }
+        }
+
         this.setState({ cursor: node });
     }
 

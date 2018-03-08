@@ -13,7 +13,7 @@ class Sidebar extends Component {
         return (
             <div className="sidebar-tabs-root">
                 <Tabs2 vertical={true} id="sidebar-tabs" className="pt-dark sidebar-tabs">
-                    <Tab2 title={filesIcon} id="sidebar-files" panel={<SidebarFileList/>}></Tab2>
+                    <Tab2 title={filesIcon} id="sidebar-files" panel={<SidebarFileList onFileSelected={this.props.onFileSelected}/>}></Tab2>
                     <Tab2 title={wrenchIcon} id="sidebar-settings"></Tab2>
                 </Tabs2>
             </div>
