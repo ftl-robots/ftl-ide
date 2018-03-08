@@ -3,8 +3,16 @@ const bodyParser = require('body-parser')
 const path = require('path');
 const Moniker = require('moniker');
 
+const ProjectManager = require('./server/project-manager');
+
 const app = express();
 const router = express.Router();
+
+const projectMgr = new ProjectManager();
+projectMgr.getAllProjects()
+    .then((projects) => {
+        console.log('projects: ', projects);
+    })
 
 app.use(express.static(path.join(__dirname, 'build')));
 app.use(bodyParser.urlencoded({extended:true}));
