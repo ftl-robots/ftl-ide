@@ -64,9 +64,10 @@ router.route('/projects/:project_id')
             });
         }
     });
+
 router.route('/projects/:project_id/files')
     .get((req, res) => {
-        projectMgr.getProjectFiles(req.params.project_id)
+        projectMgr.getProjectAllFiles(req.params.project_id)
             .then((files) => {
                 res.json(files);
             })
@@ -74,15 +75,47 @@ router.route('/projects/:project_id/files')
                 res.status(404)
                     .json([]);
             })
-        // console.log('Getting files for ' + req.params.project_id);
-        // res.json({ message: 'ok' });
-    })
+    });
 
-    router.route('/projects/:project_id/files/:file_path')
+router.route('/projects/:project_id/files/:file_path')
     .get((req, res) => {
-        // NOTE Filepath needs to be URL Encoded
-        console.log('Getting filepath for ' + req.params.project_id + '/' + req.params.file_path);
-        res.json({ message: 'ok' });
+        projectMgr.getProjectFile(req.params.project_id, req.params.file_path)
+            .then((fileInfo) => {
+                console.log('hi there: ', fileInfo);
+                if (fileInfo.success) {
+                    res.json({
+                        projectId: fileInfo.projectId,
+                        filePath: fileInfo.filePath,
+                        contents: fileInfo.contents
+                    });
+                }
+                else {
+                    res.status(404)
+                        .json({
+                            projectId: fileInfo.projectId,
+                            filePath: fileInfo.filePath,
+                            error: fileInfo.error
+                        });
+                }
+            })
+            .catch((err) => {
+                res.status(404)
+                    .json({
+                        projectId: req.params.project_id,
+                        filePath: req.params.file_path,
+                        error: err
+                    });
+            });
+    })
+    .post((req, res) => {
+        // TODO this handles the CREATION of a new file or folder
+    })
+    .put((req, res) => {
+        // TODO This handles the UPDATE of a file
+        // This should handle either diffs or full on update
+    })
+    .delete((req, res) => {
+        // TODO This handles the DELETION of a file or folder
     })
 
 app.use('/api', router);

@@ -93,11 +93,36 @@ class ProjectManager extends EventEmitter {
             });
     }
 
-    getProjectFiles(projectId) {
+    getProjectAllFiles(projectId) {
         return this.d_readyP
             .then(() => {
                 const projPath = Path.join(this.d_projectFSRoot, projectId);
                 return this._getFolderContents(projPath, "/");
+            });
+    }
+
+    getProjectFile(projectId, projectFilePath) {
+        return this.d_readyP
+            .then(() => {
+                var filePath = Path.join(this.d_projectFSRoot, projectId, projectFilePath);
+                
+                return fs.readFile(filePath)
+                    .then((fileData) => {
+                        return {
+                            success: true,
+                            projectId: projectId,
+                            filePath: projectFilePath,
+                            contents: fileData.toString()
+                        };
+                    })
+                    .catch((err) => {
+                        return {
+                            success: false,
+                            projectId: projectId,
+                            filePath: projectFilePath,
+                            error: err
+                        };
+                    });
             });
     }
 
