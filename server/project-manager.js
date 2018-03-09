@@ -2,7 +2,7 @@
 const EventEmitter = require('events');
 const Path = require('path');
 const fs = require('fs-extra');
-
+const Moniker = require('moniker');
 /**
  * @class ProjectDescription
  * Description of a FTL project, containing low-level details about
@@ -48,12 +48,71 @@ class ProjectManager extends EventEmitter {
                     projectList.push(this.d_projects[projectId]);
                 })
                 return projectList;
+            });
+    }
+
+    createProject(projectType) {
+        return this.d_readyP
+            .then(() => {
+                var newProjName = Moniker.choose();
+                while (this.d_projects[newProjName]) {
+                    newProjName = Moniker.choose();
+                }
+
+                return newProjName;
             })
+            .then((projId) => {
+                // Create the project folder
+                const projPath = Path.join(this.d_projectFSRoot, projId);
+                return fs.ensureDir(projPath)
+                    .then(() => {
+                        return {
+                            projectId: projId,
+                            projectPath: projPath
+                        };
+                    });
+            })
+            .then((projInfo) => {
+                // Generate the workspace file and template
+                return this._createProjectStructure(projInfo.projectId,
+                                                    projInfo.projectPath,
+                                                    projectType)
+                    .then(() => {
+                        return {
+                            projectId: projInfo.projectId,
+                            success: true
+                        };
+                    });
+            })
+            .catch((err) => {
+                return {
+                    projectId: null,
+                    success: false,
+                    error: err
+                };
+            });
     }
 
     // ==================================================
     // INTERNAL HELPER FUNCTIONS
     // ==================================================
+    _createProjectStructure(projectId, projectPath, projectType) {
+        // create and write the wkspace file
+        const wkspaceFilePath = Path.join(projectPath, '.wkspace');
+        const wkspaceFileContents = {
+            projectId: projectId,
+            projectType: projectType
+        };
+
+        return fs.writeJson(wkspaceFilePath, wkspaceFileContents, {
+                spaces: 4
+            })
+            .then(() => {
+                // Create the project template
+                return fs.writeFile(Path.join(projectPath, "testfile"), "hello")
+            });
+    }
+
     _getAllProjectsInternal() {
         // Create the folder if we haven't already
         return fs.ensureDir(this.d_projectFSRoot)
@@ -107,6 +166,7 @@ class ProjectManager extends EventEmitter {
                             lastAccessed: fileInfo.aTime,
                             lastModified: fileInfo.mTime,
                             created: fileInfo.createTime
+                            // TODO projectType
                         });
                     }
                 });

@@ -9,7 +9,8 @@ class ProjectCreatorDialog extends Component {
 
         this.state = {
             newProjectType: NULL_SELECT_VALUE,
-            selectedProject: NULL_SELECT_VALUE
+            selectedProject: NULL_SELECT_VALUE,
+            availableProjects: []
         };
 
         this.handleNewProjectTypeChanged = this.handleNewProjectTypeChanged.bind(this);
@@ -27,12 +28,51 @@ class ProjectCreatorDialog extends Component {
     }
 
     handleNewProjectTypeSubmit(event) {
+        fetch("/api/projects", { 
+                body: { projectType: event },
+                method: 'POST'}
+            )
+            .then((data) => {
+                data.json()
+                    .then((result) => {
+                        if (result.success) {
+                            window.location = "/workspace/" + result.projectId;
+                        }
+                        // TODO potentially need to signal that something went wrong
+                    });
+            });
         event.preventDefault();
     }
 
     handleSelectedProjectSubmit(event) {
         window.location = "/workspace/" + this.state.selectedProject;
         event.preventDefault();
+    }
+
+    componentWillMount() {
+        fetch("/api/projects")
+            .then((data) => {
+                if (data.status === 200 || data.status === 0) {
+                    data.json()
+                        .then((projectList) => {
+                            var projectOptionList = [];
+                            projectOptionList.push({
+                                value: NULL_SELECT_VALUE,
+                                displayText: "Choose an existing project..."
+                            });
+                            projectList.forEach((projectInfo) => {
+                                projectOptionList.push({
+                                    value: projectInfo.projectId,
+                                    displayText: projectInfo.projectId
+                                });
+                            });
+
+                            this.setState({
+                                availableProjects: projectOptionList
+                            });
+                        });
+                }
+            })
     }
 
     render() {
@@ -64,8 +104,13 @@ class ProjectCreatorDialog extends Component {
                         <ControlGroup fill={true} vertical={false}>
                             <div className="pt-select ">
                                 <select value={this.state.selectedProject} onChange={this.handleSelectedProjectChanged}>
-                                    <option value={NULL_SELECT_VALUE}>Choose an existing project...</option>
-                                    <option value="test-wkspace">test-wkspace</option>
+                                    {
+                                        this.state.availableProjects.map((projInfo) => {
+                                            return <option value={projInfo.value}>{projInfo.displayText}</option>;
+                                        })
+                                    }
+                                    {/* <option value={NULL_SELECT_VALUE}>Choose an existing project...</option>
+                                    <option value="test-wkspace">test-wkspace</option> */}
                                 </select>
                             </div>
                             <Button intent={Intent.PRIMARY} text="Load"

@@ -39,16 +39,23 @@ var d_projects = {
 // Project routes
 router.route('/projects')
     .get((req, res) => {
-        res.json(d_projects);
+        projectMgr.getAllProjects()
+            .then((projects) => {
+                res.json(projects);
+            });
     })
     .post((req, res) => {
-        var newName = Moniker.choose();
-        console.log(req.body);
-        d_projects[newName] = {
-            projectName: newName,
-            type: req.body.projectType
-        };
-        res.json({ projectName: newName });
+        projectMgr.createProject(req.body.projectType)
+            .then((createProjectStatus) => {
+                res.json(createProjectStatus);
+            });
+        // var newName = Moniker.choose();
+        // console.log(req.body);
+        // d_projects[newName] = {
+        //     projectName: newName,
+        //     type: req.body.projectType
+        // };
+        // res.json({ projectName: newName });
     });
 
 router.route('/projects/:project_id')
