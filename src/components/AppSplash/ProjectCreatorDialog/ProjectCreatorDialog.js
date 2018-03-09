@@ -29,8 +29,14 @@ class ProjectCreatorDialog extends Component {
 
     handleNewProjectTypeSubmit(event) {
         fetch("/api/projects", { 
-                body: { projectType: event },
-                method: 'POST'}
+                    body: JSON.stringify({ 
+                            projectType: this.state.newProjectType 
+                        }),
+                    method: 'POST',
+                    headers: new Headers({
+                        'Content-Type': 'application/json'
+                    })
+                }
             )
             .then((data) => {
                 data.json()
