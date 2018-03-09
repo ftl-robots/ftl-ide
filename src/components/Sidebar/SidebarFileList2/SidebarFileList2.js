@@ -103,10 +103,13 @@ class SidebarFileList2 extends Component {
 
     render() {
         return (
-            <Tree contents={this.state.nodes}
-                  onNodeClick={this.handleNodeClick}
-                  onNodeExpand={this.handleNodeExpand}
-                  onNodeCollapse={this.handleNodeCollapse}/>
+            <div>
+                <div className="sidebar-item-header">FILES</div>
+                <Tree contents={this.state.nodes}
+                    onNodeClick={this.handleNodeClick}
+                    onNodeExpand={this.handleNodeExpand}
+                    onNodeCollapse={this.handleNodeCollapse}/>
+            </div>
         )
     }
 }
