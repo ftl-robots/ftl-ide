@@ -49,13 +49,6 @@ router.route('/projects')
             .then((createProjectStatus) => {
                 res.json(createProjectStatus);
             });
-        // var newName = Moniker.choose();
-        // console.log(req.body);
-        // d_projects[newName] = {
-        //     projectName: newName,
-        //     type: req.body.projectType
-        // };
-        // res.json({ projectName: newName });
     });
 
 router.route('/projects/:project_id')
@@ -73,8 +66,16 @@ router.route('/projects/:project_id')
     });
 router.route('/projects/:project_id/files')
     .get((req, res) => {
-        console.log('Getting files for ' + req.params.project_id);
-        res.json({ message: 'ok' });
+        projectMgr.getProjectFiles(req.params.project_id)
+            .then((files) => {
+                res.json(files);
+            })
+            .catch((err) => {
+                res.status(404)
+                    .json([]);
+            })
+        // console.log('Getting files for ' + req.params.project_id);
+        // res.json({ message: 'ok' });
     })
 
     router.route('/projects/:project_id/files/:file_path')

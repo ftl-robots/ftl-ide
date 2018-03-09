@@ -93,9 +93,75 @@ class ProjectManager extends EventEmitter {
             });
     }
 
+    getProjectFiles(projectId) {
+        return this.d_readyP
+            .then(() => {
+                const projPath = Path.join(this.d_projectFSRoot, projectId);
+                return this._getFolderContents(projPath, "/");
+            });
+    }
+
     // ==================================================
     // INTERNAL HELPER FUNCTIONS
     // ==================================================
+    _getFolderContents(path, relPath) {
+        return fs.readdir(path)
+            .then((files) => {
+                var statPromises = [];
+                files.forEach((file) => {
+                    var filePath = Path.join(path, file);
+                    statPromises.push(fs.stat(filePath));
+                });
+
+                return Promise.all(statPromises)
+                    .then((statResults) => {
+                        var statResultList = [];
+                        files.forEach((file, idx) => {
+                            statResultList.push({
+                                fileName: file,
+                                filePath: Path.join(path, file),
+                                relPath: Path.join(relPath, file),
+                                isDirectory: statResults[idx].isDirectory()
+                            });
+                        });
+
+                        return statResultList;
+                    });
+            })
+            .then((statResultList) => {
+                var finalPromises = [];
+
+                // statResultList is basically an array of files/folders AT THIS PATH
+                // we will then iterate on this and finally populate the folder structure
+                statResultList.forEach((statResult) => {
+                    if (statResult.isDirectory) {
+                        // If this is a directory, we add the recursive promise
+                        var folderPromise = this._getFolderContents(statResult.filePath, statResult.relPath)
+                            .then((folderResults) => {
+                                return {
+                                    fileName: statResult.fileName,
+                                    filePath: statResult.relPath,
+                                    children: folderResults
+                                };
+                            });
+                        finalPromises.push(folderPromise);
+                    }
+                    else {
+                        // Ignore dotfiles
+                        if (statResult.fileName !== '.wkspace') {
+                            finalPromises.push({
+                                fileName: statResult.fileName,
+                                filePath: statResult.relPath
+                            });
+                        }
+                        
+                    }
+                });
+
+                return Promise.all(finalPromises);
+            });
+    }
+
     _createProjectStructure(projectId, projectPath, projectType) {
         // create and write the wkspace file
         const wkspaceFilePath = Path.join(projectPath, '.wkspace');
