@@ -24,7 +24,7 @@ class SidebarFileList2 extends Component {
             </Tooltip>
         );
 
-        var projectNodes = generateTreeNodes(props.projectWorkspace, handlers);
+        var projectNodes = generateTreeNodes(props.fileList, handlers);
 
         var rootNode = {
             iconName: 'projects',
@@ -39,6 +39,8 @@ class SidebarFileList2 extends Component {
             nodes: [rootNode]
         };
 
+        console.log('props! ', props);
+
         this.handleNodeClick = this.handleNodeClick.bind(this);
         this.handleNodeExpand = this.handleNodeExpand.bind(this);
         this.handleNodeCollapse = this.handleNodeCollapse.bind(this);
@@ -46,6 +48,7 @@ class SidebarFileList2 extends Component {
     }
 
     componentWillReceiveProps(newProps) {
+        console.log('hi newprops:', newProps);
         var handlers = {
             addFile: newProps.onAddFile,
             addFolder: newProps.onAddFolder,
@@ -62,7 +65,7 @@ class SidebarFileList2 extends Component {
             </Tooltip>
         );
 
-        var projectNodes = generateTreeNodes(newProps.projectWorkspace, handlers);
+        var projectNodes = generateTreeNodes(newProps.fileList, handlers);
 
         var rootNode = {
             iconName: 'projects',
@@ -79,15 +82,33 @@ class SidebarFileList2 extends Component {
     }
 
     handleNodeClick(nodeData, nodePath, e) {
+        const originallySelected = nodeData.isSelected;
+        this.forEachNode(this.state.nodes, (n) => n.isSelected = false);
 
+        nodeData.isSelected = originallySelected === null ? true : !originallySelected;
+        
+        if (nodeData.type === FileStructureTypes.ITEM) {
+            this.props.onFileSelected(nodeData.key);
+        }
     }
 
     handleNodeCollapse(nodeData) {
-
+        if (nodeData.type === FileStructureTypes.FOLDER) {
+            nodeData.isExpanded = false;
+            nodeData.iconName = 'folder-open';
+            this.setState(this.state);
+            // Inform upstairs
+        }
     }
 
     handleNodeExpand(nodeData) {
-
+        console.log('nodeData: ', nodeData);
+        if (nodeData.type === FileStructureTypes.FOLDER) {
+            nodeData.isExpanded = true;
+            nodeData.iconName = 'folder-open';
+            this.setState(this.state);
+            // inform upstairs about what went down?
+        }
     }
 
     forEachNode(nodes, callback) {

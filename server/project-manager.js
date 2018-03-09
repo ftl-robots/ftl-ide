@@ -3,6 +3,10 @@ const EventEmitter = require('events');
 const Path = require('path');
 const fs = require('fs-extra');
 const Moniker = require('moniker');
+const FileStructureTypes = {
+    FOLDER: 'folder',
+    ITEM: 'item'
+};
 /**
  * @class ProjectDescription
  * Description of a FTL project, containing low-level details about
@@ -166,7 +170,11 @@ class ProjectManager extends EventEmitter {
                                 return {
                                     fileName: statResult.fileName,
                                     filePath: statResult.relPath,
-                                    children: folderResults
+
+                                    children: folderResults,
+
+                                    type: FileStructureTypes.FOLDER,
+                                    label: statResult.fileName
                                 };
                             });
                         finalPromises.push(folderPromise);
@@ -176,7 +184,11 @@ class ProjectManager extends EventEmitter {
                         if (statResult.fileName !== '.wkspace') {
                             finalPromises.push({
                                 fileName: statResult.fileName,
-                                filePath: statResult.relPath
+                                filePath: statResult.relPath,
+
+                                // To match generateTreeNodes
+                                type: FileStructureTypes.ITEM,
+                                label: statResult.fileName,
                             });
                         }
                         

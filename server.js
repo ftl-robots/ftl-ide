@@ -81,7 +81,6 @@ router.route('/projects/:project_id/files/:file_path')
     .get((req, res) => {
         projectMgr.getProjectFile(req.params.project_id, req.params.file_path)
             .then((fileInfo) => {
-                console.log('hi there: ', fileInfo);
                 if (fileInfo.success) {
                     res.json({
                         projectId: fileInfo.projectId,

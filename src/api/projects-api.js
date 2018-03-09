@@ -14,6 +14,10 @@ export function getProjectData(projectId) {
     return fetch('/api/projects/' + projectId);
 }
 
-export function getProjectFiles(projectId) {
+export function getProjectAllFiles(projectId) {
     return fetch('/api/projects/' + projectId + '/files');
+}
+
+export function getProjectFile(projectId, filePath) {
+    return fetch('/api/projects/' + projectId + '/files/' + encodeURIComponent(filePath));
 }

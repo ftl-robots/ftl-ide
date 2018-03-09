@@ -7,30 +7,49 @@ import Sidebar from '../Sidebar/Sidebar';
 
 import DefaultEditor from '../editor-views/DefaultEditor/DefaultEditor';
 
+import { getProjectFile } from '../../api/projects-api';
+
 import './AppWorkspace.css';
 
 class AppWorkspace extends Component {
     constructor(props) {
         super(props);
 
+        console.log('appworkspace props:', props);
+
         this.state = {
-            loadedFile: null
+            workspaceId: this.props.workspaceId,
+            loadedFile: null,
+            projectFiles: this.props.projectFiles || []
         };
 
         this.onFileSelected = this.onFileSelected.bind(this);
     }
 
-    onFileSelected(event) {
-        console.log(event);
-        this.setState({
-            loadedFile: {
-                filePath: event
-            }
+    onFileSelected(filePath) {
+        console.log(filePath);
 
-        })
+        getProjectFile(this.state.workspaceId, filePath)
+            .then((result) => {
+                console.log('result: ', result);
+                result.json().then((fileResult) => {
+                    console.log('fileResult: ', fileResult);
+                    this.setState({
+                        loadedFile: fileResult
+                    });
+                })
+            });
+    }
+
+    componentWillReceiveProps(newProps) {
+        console.log('willReceiveProps: ', newProps);
+        this.setState({
+            projectFiles: newProps.projectFiles || []
+        });
     }
 
     render() {
+        console.log('rendering!');
         var editorView;
         if (this.state.loadedFile) {
             editorView = <DefaultEditor loadedFile={this.state.loadedFile}/>
@@ -63,7 +82,7 @@ class AppWorkspace extends Component {
                                 right:0,
                                 bottom: 0
                             }}>
-                    <Sidebar onFileSelected={this.onFileSelected}/>
+                    <Sidebar onFileSelected={this.onFileSelected} fileList={this.state.projectFiles}/>
                     <PanelGroup direction="column" 
                                 borderColor="grey"
                                 panelWidths={[

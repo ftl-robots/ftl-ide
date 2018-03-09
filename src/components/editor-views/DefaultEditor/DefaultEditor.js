@@ -9,10 +9,24 @@ import DemoText from './test.md';
 import MarkdownViewer from '../../MarkdownViewer/MarkdownViewer';
 
 class DefaultEditorView extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            loadedFile: this.props.loadedFile
+        }
+    }
+
+    componentWillReceiveProps(newProps) {
+        console.log(newProps);
+        this.setState({
+            loadedFile: newProps.loadedFile
+        });
+    }
+
     render() {
         return (
             <div className="main-area-root default-editor-view-root">
-                <DefaultEditorPane filePath={"ftlrobots/robot/Robot.java"}/>
+                <DefaultEditorPane loadedFile={this.state.loadedFile}/>
                 <div className="default-editor-view-sidebar pt-dark">
                     <Popover content={<div style={{padding:"5px"}}><MarkdownViewer filename={DemoText}/></div>} position={Position.LEFT_TOP}> 
                         <Tooltip content="Documentation" position={Position.LEFT}>

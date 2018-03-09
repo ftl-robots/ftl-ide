@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { getProjectFiles } from '../../api/projects-api';
+import { getProjectAllFiles } from '../../api/projects-api';
 
 import './AppMain.css';
 import AppWorkspace from '../AppWorkspace/AppWorkspace';
@@ -10,16 +10,19 @@ class AppMain extends Component {
         super(props);
 
         this.state = {
-            workspaceId: this.props.params.workspaceId
+            workspaceId: this.props.params.workspaceId,
+            projectFiles: []
         };
     }
 
     componentWillMount() {
-        getProjectFiles(this.state.workspaceId)
+        getProjectAllFiles(this.state.workspaceId)
             .then((response) => {
-                console.log(response);
-                response.json().then((value) => {
-                    console.log('json value: ', value);
+                response.json().then((projFiles) => {
+                    console.log('cwillmount: ', projFiles);
+                    this.setState({
+                        projectFiles: projFiles
+                    });
                 })
                 .catch((err) => {
                     console.log(err);
@@ -27,16 +30,20 @@ class AppMain extends Component {
             })
             .catch((error) => {
                 console.log(error);
-            })
+            });
     }
+
+    // TODO We should handle all the file add/deletion stuff here
+    // and then update the projectFiles state
 
     render() {
         var demoLoadedFile = {
             filePath: '/'
         }
+        console.log('rendering!', this.state);
         return (
             <div className="app-main-view-root">
-                <AppWorkspace />
+                <AppWorkspace workspaceId={this.state.workspaceId} projectFiles={this.state.projectFiles}/>
                 <StatusBar workspaceId={this.state.workspaceId}/>
             </div>
         );
