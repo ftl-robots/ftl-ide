@@ -17,8 +17,12 @@ class AppMain extends Component {
     componentWillMount() {
         getProjectFiles(this.state.workspaceId)
             .then((response) => {
+                console.log(response);
                 response.json().then((value) => {
                     console.log('json value: ', value);
+                })
+                .catch((err) => {
+                    console.log(err);
                 })
             })
             .catch((error) => {
