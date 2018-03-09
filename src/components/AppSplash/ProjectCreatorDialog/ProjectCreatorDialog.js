@@ -109,8 +109,6 @@ class ProjectCreatorDialog extends Component {
                                             return <option value={projInfo.value}>{projInfo.displayText}</option>;
                                         })
                                     }
-                                    {/* <option value={NULL_SELECT_VALUE}>Choose an existing project...</option>
-                                    <option value="test-wkspace">test-wkspace</option> */}
                                 </select>
                             </div>
                             <Button intent={Intent.PRIMARY} text="Load"
