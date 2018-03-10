@@ -229,7 +229,12 @@ class ProjectManager extends EventEmitter {
             })
             .then(() => {
                 // Create the project template
-                return fs.writeFile(Path.join(projectPath, "testfile"), "hello")
+                const templateDir = Path.join(PROJECT_TEMPLATES_DIR, projectType, "template");
+                return fs.copy(templateDir, projectPath)
+                    .catch((err) => {
+                        console.log("Error: ", err);
+                    })
+                //return fs.writeFile(Path.join(projectPath, "testfile"), "hello")
             });
     }
 
