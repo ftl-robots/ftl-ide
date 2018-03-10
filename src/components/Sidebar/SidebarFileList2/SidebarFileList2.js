@@ -39,8 +39,6 @@ class SidebarFileList2 extends Component {
             nodes: [rootNode]
         };
 
-        console.log('props! ', props);
-
         this.handleNodeClick = this.handleNodeClick.bind(this);
         this.handleNodeExpand = this.handleNodeExpand.bind(this);
         this.handleNodeCollapse = this.handleNodeCollapse.bind(this);
@@ -48,7 +46,6 @@ class SidebarFileList2 extends Component {
     }
 
     componentWillReceiveProps(newProps) {
-        console.log('hi newprops:', newProps);
         var handlers = {
             addFile: newProps.onAddFile,
             addFolder: newProps.onAddFolder,
@@ -102,7 +99,6 @@ class SidebarFileList2 extends Component {
     }
 
     handleNodeExpand(nodeData) {
-        console.log('nodeData: ', nodeData);
         if (nodeData.type === FileStructureTypes.FOLDER) {
             nodeData.isExpanded = true;
             nodeData.iconName = 'folder-open';

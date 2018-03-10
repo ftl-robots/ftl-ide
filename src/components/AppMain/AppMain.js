@@ -19,7 +19,6 @@ class AppMain extends Component {
         getProjectAllFiles(this.state.workspaceId)
             .then((response) => {
                 response.json().then((projFiles) => {
-                    console.log('cwillmount: ', projFiles);
                     this.setState({
                         projectFiles: projFiles
                     });
@@ -37,10 +36,7 @@ class AppMain extends Component {
     // and then update the projectFiles state
 
     render() {
-        var demoLoadedFile = {
-            filePath: '/'
-        }
-        console.log('rendering!', this.state);
+        
         return (
             <div className="app-main-view-root">
                 <AppWorkspace workspaceId={this.state.workspaceId} projectFiles={this.state.projectFiles}/>

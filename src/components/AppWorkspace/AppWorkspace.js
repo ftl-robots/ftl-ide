@@ -15,8 +15,6 @@ class AppWorkspace extends Component {
     constructor(props) {
         super(props);
 
-        console.log('appworkspace props:', props);
-
         this.state = {
             workspaceId: this.props.workspaceId,
             loadedFile: null,
@@ -27,13 +25,10 @@ class AppWorkspace extends Component {
     }
 
     onFileSelected(filePath) {
-        console.log(filePath);
 
         getProjectFile(this.state.workspaceId, filePath)
             .then((result) => {
-                console.log('result: ', result);
                 result.json().then((fileResult) => {
-                    console.log('fileResult: ', fileResult);
                     this.setState({
                         loadedFile: fileResult
                     });
@@ -42,14 +37,12 @@ class AppWorkspace extends Component {
     }
 
     componentWillReceiveProps(newProps) {
-        console.log('willReceiveProps: ', newProps);
         this.setState({
             projectFiles: newProps.projectFiles || []
         });
     }
 
     render() {
-        console.log('rendering!');
         var editorView;
         if (this.state.loadedFile) {
             editorView = <DefaultEditor loadedFile={this.state.loadedFile}/>
