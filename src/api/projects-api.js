@@ -2,6 +2,10 @@ export function getProjects() {
     return fetch('/api/projects');
 }
 
+export function getTemplates() {
+    return fetch('/api/templates');
+}
+
 export function createProject(type) {
     return fetch('/api/projects', {
         body: { projectType: type },

@@ -36,6 +36,15 @@ var d_projects = {
 };
 
 // Set up API routes
+// Template
+router.route('/templates')
+    .get((req, res) => {
+        projectMgr.getProjectTemplates()
+            .then((templates) => {
+                res.json(templates);
+            });
+    });
+
 // Project routes
 router.route('/projects')
     .get((req, res) => {

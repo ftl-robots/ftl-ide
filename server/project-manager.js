@@ -7,6 +7,9 @@ const FileStructureTypes = {
     FOLDER: 'folder',
     ITEM: 'item'
 };
+
+const PROJECT_TEMPLATES_DIR = Path.join(__dirname, "project-templates");
+
 /**
  * @class ProjectDescription
  * Description of a FTL project, containing low-level details about
@@ -21,6 +24,7 @@ class ProjectManager extends EventEmitter {
 
         this.d_projectFSRoot = opts.fsRoot || Path.resolve(__dirname, "..", "ftl-projects");
         this.d_projects = {}; // Key: Project ID, value, project details
+        this.d_templates = [];
 
         this.reinitialize();
     }
@@ -35,6 +39,12 @@ class ProjectManager extends EventEmitter {
                     projectList.forEach((projectInfo) => {
                         this.d_projects[projectInfo.projectId] = projectInfo;
                     });
+                })
+                .then(this._getProjectTemplatesInternal)
+                .then((projectTemplates) => {
+                    this.d_templates = projectTemplates;
+                })
+                .then(() => {
                     resolve();
                 })
                 .catch((err) => {
@@ -42,6 +52,13 @@ class ProjectManager extends EventEmitter {
                 });
         });
         return this.d_readyP;
+    }
+
+    getProjectTemplates() {
+        return this.d_readyP
+            .then(() => {
+                return this.d_templates;
+            });
     }
 
     getAllProjects() {
@@ -216,6 +233,56 @@ class ProjectManager extends EventEmitter {
             });
     }
 
+    _getProjectTemplatesInternal() {
+        return fs.readdir(PROJECT_TEMPLATES_DIR)
+            .then((files) => {
+                var statPromises = [];
+                files.forEach((filename) => {
+                    const filePath = Path.join(PROJECT_TEMPLATES_DIR, filename);
+                    var statP = fs.stat(filePath)
+                                    .then((stats) => {
+                                        return {
+                                            fileName: filename,
+                                            filePath: filePath,
+                                            isDir: stats.isDirectory()
+                                        };
+                                    })
+                                    .catch((err) => {
+                                        return {
+                                            fileName: filename,
+                                            filePath: filePath,
+                                            isDir: false
+                                        };
+                                    });
+                    statPromises.push(statP);
+                });
+
+                return Promise.all(statPromises);
+            })
+            .then((statResults) => {
+                var templatePromises = [];
+                statResults.forEach((statResult) => {
+                    if (statResult.isDir) {
+                        var templateDescFilePath = Path.join(statResult.filePath, "template.json");
+                        var templateDescP = fs.readJson(templateDescFilePath)
+                                                .then((templateInfo) => {
+                                                    return {
+                                                        templateName: statResult.fileName,
+                                                        templateDesc: templateInfo.description,
+                                                    };
+                                                });
+                        templatePromises.push(templateDescP);
+                    }
+                });
+
+                return Promise.all(templatePromises);
+            })
+            .catch((err) => {
+                console.log('err: ', err);
+                return [];
+            })
+    }
+
     _getAllProjectsInternal() {
         // Create the folder if we haven't already
         return fs.ensureDir(this.d_projectFSRoot)
@@ -238,7 +305,7 @@ class ProjectManager extends EventEmitter {
                                         return {
                                             fileName: filename,
                                             filePath: filePath,
-                                            isDir: stats.isDirectory,
+                                            isDir: stats.isDirectory(),
                                             aTime: stats.atime,
                                             mTime: stats.mtime,
                                             createTime: stats.birthtime

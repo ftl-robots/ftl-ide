@@ -10,7 +10,8 @@ class ProjectCreatorDialog extends Component {
         this.state = {
             newProjectType: NULL_SELECT_VALUE,
             selectedProject: NULL_SELECT_VALUE,
-            availableProjects: []
+            availableProjects: [],
+            projectTemplates: []
         };
 
         this.handleNewProjectTypeChanged = this.handleNewProjectTypeChanged.bind(this);
@@ -79,6 +80,30 @@ class ProjectCreatorDialog extends Component {
                         });
                 }
             })
+        
+        fetch("/api/templates")
+            .then((data) => {
+                if (data.status === 200 || data.status === 0) {
+                    data.json()
+                        .then((templateList) => {
+                            var templateOptionList = [];
+                            templateOptionList.push({
+                                value: NULL_SELECT_VALUE,
+                                displayText: "Choose a project type..."
+                            });
+                            templateList.forEach((template) => {
+                                templateOptionList.push({
+                                    value: template.templateName,
+                                    displayText: template.templateDesc
+                                });
+                            });
+
+                            this.setState({
+                                projectTemplates: templateOptionList
+                            });
+                        });
+                }
+            });
     }
 
     render() {
@@ -95,8 +120,11 @@ class ProjectCreatorDialog extends Component {
                         <ControlGroup fill={true} vertical={false}>
                             <div className="pt-select ">
                                 <select value={this.state.newProjectType} onChange={this.handleNewProjectTypeChanged}>
-                                    <option value={NULL_SELECT_VALUE}>Choose a project type...</option>
-                                    <option value="basic-java">Basic Java Robot Program</option>
+                                    {
+                                        this.state.projectTemplates.map((templateInfo) => {
+                                            return <option value={templateInfo.value}>{templateInfo.displayText}</option>;
+                                        })
+                                    }
                                 </select>
                             </div>
                             <Button intent={Intent.PRIMARY} text="Create"

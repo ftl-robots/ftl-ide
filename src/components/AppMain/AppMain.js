@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { getProjectAllFiles } from '../../api/projects-api';
+import { getProjectAllFiles, getTemplates } from '../../api/projects-api';
 
 import './AppMain.css';
 import AppWorkspace from '../AppWorkspace/AppWorkspace';
@@ -11,7 +11,8 @@ class AppMain extends Component {
 
         this.state = {
             workspaceId: this.props.params.workspaceId,
-            projectFiles: []
+            projectFiles: [],
+            templates: []
         };
     }
 
