@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { getProjectAllFiles, getTemplates } from '../../api/projects-api';
+import { getProjectAllFiles } from '../../api/projects-api';
 
 import './AppMain.css';
 import AppWorkspace from '../AppWorkspace/AppWorkspace';
