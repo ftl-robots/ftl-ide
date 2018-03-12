@@ -1,7 +1,7 @@
 import React from 'react';
 import { FileStructureTypes } from '../Constants';
 import { Tooltip } from '@blueprintjs/core';
-import FileListItem from '../components/Sidebar/SidebarFileList2/FileListItem';
+import FileListItem from '../components/Sidebar/SidebarFileList/FileListItem';
 
 function makeFolder(def, path, handlers) {
     var folderLabel = (

@@ -1,87 +1,133 @@
 import React, { Component } from 'react';
-import { Treebeard, decorators } from 'react-treebeard';
-
-decorators.Header =({style, node}) => {
-    const iconType = node.id === 'root' ? 'projects' :
-                        (node.children ? 
-                            (node.toggled ? 'folder-open':'folder-close') : 
-                            'document');
-    
-    return (
-        <div style={style.base}>
-            <div style={style.title}>
-                <span className={"pt-icon-standard pt-icon-" + iconType} 
-                      style={{marginRight: '5px'}}></span>
-                {node.name}
-            </div>
-        </div>
-    );
-};
-
-const data = {
-    name: 'test-wkspace',
-    id: 'root',
-    toggled: true,
-    children: [
-        {
-            name: 'ftlrobot',
-            children: [
-                {
-                    name: 'robot',
-                    children: [
-                        { name: 'Robot.java'}
-                    ]
-                }
-            ]
-        },
-        
-    ]
-};
+import { Tree, Tooltip } from '@blueprintjs/core';
+import FileListItem from './FileListItem';
+import { FileStructureTypes } from '../../../Constants';
+import { generateTreeNodes } from '../../../utils/file-list-utils';
 
 class SidebarFileList extends Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            cursor: null
+        var handlers = {
+            addFile: this.props.onAddFile,
+            addFolder: this.props.onAddFolder,
+            deleteFile: this.props.onDeleteFile,
+            deleteFolder: this.props.onDeleteFolder
         };
+
+        var rootLabel = (
+            <Tooltip content="Robot Project">
+                <FileListItem labelKey="/"
+                              displayText="Robot Project"
+                              type={FileStructureTypes.PROJECT_ROOT}
+                              handlers={handlers}/>
+            </Tooltip>
+        );
+
+        var projectNodes = generateTreeNodes(props.fileList, handlers);
+
+        var rootNode = {
+            iconName: 'projects',
+            label: rootLabel,
+            key: '/',
+            type: FileStructureTypes.PROJECT_ROOT,
+            childNodes: projectNodes,
+            isExpanded: true
+        };
+
+        this.state = {
+            nodes: [rootNode]
+        };
+
+        this.handleNodeClick = this.handleNodeClick.bind(this);
+        this.handleNodeExpand = this.handleNodeExpand.bind(this);
+        this.handleNodeCollapse = this.handleNodeCollapse.bind(this);
+        this.forEachNode = this.forEachNode.bind(this);
     }
 
-    handleToggle(node, toggled){
-        console.log('node:' , node);
-        console.log('toggled:', toggled);
-        // Unset the cursor
-        if(this.state.cursor) {
-            var cursor = this.state.cursor;
-            cursor.active = false;
-            this.setState({
-                cursor: cursor
-            });
+    componentWillReceiveProps(newProps) {
+        var handlers = {
+            addFile: newProps.onAddFile,
+            addFolder: newProps.onAddFolder,
+            deleteFile: newProps.onDeleteFile,
+            deleteFolder: newProps.onDeleteFolder
+        };
+
+        var rootLabel = (
+            <Tooltip content="Robot Project">
+                <FileListItem labelKey="/"
+                              displayText="Robot Project"
+                              type={FileStructureTypes.PROJECT_ROOT}
+                              handlers={handlers}/>
+            </Tooltip>
+        );
+
+        var projectNodes = generateTreeNodes(newProps.fileList, handlers);
+
+        var rootNode = {
+            iconName: 'projects',
+            label: rootLabel,
+            key: '/',
+            type: FileStructureTypes.PROJECT_ROOT,
+            childNodes: projectNodes,
+            isExpanded: true
+        };
+
+        this.setState({
+            nodes: [rootNode]
+        });
+    }
+
+    handleNodeClick(nodeData, nodePath, e) {
+        const originallySelected = nodeData.isSelected;
+        this.forEachNode(this.state.nodes, (n) => n.isSelected = false);
+
+        nodeData.isSelected = originallySelected === null ? true : !originallySelected;
+        
+        if (nodeData.type === FileStructureTypes.ITEM) {
+            this.props.onFileSelected(nodeData.key);
         }
-        node.active = true;
-        if(node.children) { 
-            node.toggled = toggled; 
+    }
+
+    handleNodeCollapse(nodeData) {
+        if (nodeData.type === FileStructureTypes.FOLDER) {
+            nodeData.isExpanded = false;
+            nodeData.iconName = 'folder-open';
+            this.setState(this.state);
+            // Inform upstairs
+        }
+    }
+
+    handleNodeExpand(nodeData) {
+        if (nodeData.type === FileStructureTypes.FOLDER) {
+            nodeData.isExpanded = true;
+            nodeData.iconName = 'folder-open';
+            this.setState(this.state);
+            // inform upstairs about what went down?
+        }
+    }
+
+    forEachNode(nodes, callback) {
+        if (!nodes) {
+            return;
         }
 
-        if (!node.children) {
-            // it's a root node
-            if (this.props.onFileSelected) {
-                this.props.onFileSelected("ftlrobots/robot/Robot.java");
-            }
+        for (const node of nodes) {
+            callback(node);
+            this.forEachNode(node.childNodes, callback);
         }
-
-        this.setState({ cursor: node });
     }
 
     render() {
-        
-
         return (
             <div>
                 <div className="sidebar-item-header">FILES</div>
-                <Treebeard className="sidebar-file-list" data={data} onToggle={this.handleToggle.bind(this)} decorators={decorators}/>
+                <Tree contents={this.state.nodes}
+                    onNodeClick={this.handleNodeClick}
+                    onNodeExpand={this.handleNodeExpand}
+                    onNodeCollapse={this.handleNodeCollapse}/>
             </div>
-        );
+        )
     }
 }
 
