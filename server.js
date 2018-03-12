@@ -18,11 +18,6 @@ app.use(express.static(path.join(__dirname, 'build')));
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
 
-// API definition
-app.get('/ping', function (req, res) {
-    return res.send('pong');
-});
-
 app.get('/', function (req, res) {
     res.send("hiii");
     //res.sendFile(path.join(__dirname, 'build', 'index.html'));
@@ -62,7 +57,8 @@ router.route('/projects')
 
 router.route('/projects/:project_id')
     .get((req, res) => {
-        console.log('Retrieving ' + req.params.project_id);
+        // TODO: Do we actually need this?
+        // We could use projectMgr to get details
         var project = d_projects[req.params.project_id];
         if (project) {
             res.json(project);

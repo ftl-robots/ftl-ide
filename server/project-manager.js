@@ -232,9 +232,8 @@ class ProjectManager extends EventEmitter {
                 const templateDir = Path.join(PROJECT_TEMPLATES_DIR, projectType, "template");
                 return fs.copy(templateDir, projectPath)
                     .catch((err) => {
-                        console.log("Error: ", err);
-                    })
-                //return fs.writeFile(Path.join(projectPath, "testfile"), "hello")
+                        console.log("Could not create project folder: ", err);
+                    });
             });
     }
 
