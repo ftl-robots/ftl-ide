@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Tab2, Tabs2, Icon } from '@blueprintjs/core';
+import { Tab2, Tabs2, Icon, Tooltip, Position } from '@blueprintjs/core';
 
 import SidebarFileList from './SidebarFileList/SidebarFileList';
 
@@ -21,13 +21,23 @@ class Sidebar extends Component {
     }
 
     render() {
-        const filesIcon = <Icon iconName='document'/>;
-        const wrenchIcon = <Icon iconName='wrench'/>;
+        const filesTab = (
+            <Tooltip content="File Explorer" position={Position.RIGHT}>
+                <Icon iconName="document"/>
+            </Tooltip>
+        );
+
+        const configTab = (
+            <Tooltip content="Configuration" position={Position.RIGHT}>
+                <Icon iconName="wrench"/>
+            </Tooltip>
+        );
+        
         return (
             <div className="sidebar-tabs-root">
                 <Tabs2 vertical={true} id="sidebar-tabs" className="pt-dark sidebar-tabs">
-                    <Tab2 title={filesIcon} id="sidebar-files" panel={<SidebarFileList onFileSelected={this.props.onFileSelected} fileList={this.state.fileList}/>}></Tab2>
-                    <Tab2 title={wrenchIcon} id="sidebar-settings"></Tab2>
+                    <Tab2 title={filesTab} id="sidebar-files" panel={<SidebarFileList onFileSelected={this.props.onFileSelected} fileList={this.state.fileList}/>}></Tab2>
+                    <Tab2 title={configTab} id="sidebar-settings"></Tab2>
                 </Tabs2>
             </div>
         );
