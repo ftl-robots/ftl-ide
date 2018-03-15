@@ -10,18 +10,24 @@ class AppMain extends Component {
         super(props);
 
         this.state = {
-            workspaceId: this.props.params.workspaceId,
-            projectFiles: [],
-            templates: []
+            projectId: this.props.params.projectId,
+            projectType: null,
+            workspace: {
+                files: [],
+                activeFile: null
+            }
         };
     }
 
     componentWillMount() {
-        getProjectAllFiles(this.state.workspaceId)
+        // TODO call getProjectInfo, which should return a snapshot
+        getProjectAllFiles(this.state.projectId)
             .then((response) => {
                 response.json().then((projFiles) => {
+                    var currWorkspace = this.state.workspace;
+                    currWorkspace.files = projFiles;
                     this.setState({
-                        projectFiles: projFiles
+                        workspace: currWorkspace
                     });
                 })
                 .catch((err) => {
@@ -37,11 +43,10 @@ class AppMain extends Component {
     // and then update the projectFiles state
 
     render() {
-        
         return (
             <div className="app-main-view-root">
-                <AppWorkspace workspaceId={this.state.workspaceId} projectFiles={this.state.projectFiles}/>
-                <StatusBar workspaceId={this.state.workspaceId}/>
+                <AppWorkspace {...this.state}/>
+                <StatusBar projectId={this.state.projectId}/>
             </div>
         );
     }

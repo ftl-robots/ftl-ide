@@ -16,9 +16,12 @@ class AppWorkspace extends Component {
         super(props);
 
         this.state = {
-            workspaceId: this.props.workspaceId,
-            loadedFile: null,
-            projectFiles: this.props.projectFiles || []
+            projectId: this.props.projectId,
+            projectType: this.props.projectType,
+            workspace: {
+                files: this.props.workspace.files || [],
+                activeFile: null
+            }
         };
 
         this.onFileSelected = this.onFileSelected.bind(this);
@@ -26,26 +29,31 @@ class AppWorkspace extends Component {
 
     onFileSelected(filePath) {
 
-        getProjectFile(this.state.workspaceId, filePath)
+        getProjectFile(this.state.projectId, filePath)
             .then((result) => {
                 result.json().then((fileResult) => {
+                    var workspace = this.state.workspace;
+                    workspace.activeFile = fileResult;
                     this.setState({
-                        loadedFile: fileResult
+                        workspace: workspace
                     });
+                    
                 })
             });
     }
 
     componentWillReceiveProps(newProps) {
+        var workspace = this.state.workspace;
+        workspace.files = newProps.workspace.files || [];
         this.setState({
-            projectFiles: newProps.projectFiles || []
+            workspace: workspace
         });
     }
 
     render() {
         var editorView;
-        if (this.state.loadedFile) {
-            editorView = <DefaultEditor loadedFile={this.state.loadedFile}/>
+        if (this.state.workspace.activeFile) {
+            editorView = <DefaultEditor loadedFile={this.state.workspace.activeFile}/>
         }
         else {
             editorView = (
@@ -75,7 +83,7 @@ class AppWorkspace extends Component {
                                 right:0,
                                 bottom: 0
                             }}>
-                    <Sidebar onFileSelected={this.onFileSelected} fileList={this.state.projectFiles}/>
+                    <Sidebar onFileSelected={this.onFileSelected} fileList={this.state.workspace.files}/>
                     <PanelGroup direction="column" 
                                 borderColor="grey"
                                 panelWidths={[

@@ -9,7 +9,7 @@ class AppRoot extends Component {
         return (
             <Router history={browserHistory}>
                 <Route path="/" component={AppSplash}/>
-                <Route path="/workspace/:workspaceId" component={AppMain}/>
+                <Route path="/workspace/:projectId" component={AppMain}/>
                 
             </Router>
         )
