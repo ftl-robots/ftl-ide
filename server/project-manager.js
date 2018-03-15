@@ -328,24 +328,44 @@ class ProjectManager extends EventEmitter {
                 return Promise.all(statPromises);
             })
             .then((files) => {
-                // files is an array of stat data
-                var projectList = [];
+                var wkspacePromises = [];
+
                 files.forEach((fileInfo) => {
                     if (fileInfo.isDir) {
-                        // TODO one more check: 
-                        // Look inside for a .wkspace file
-                        projectList.push({
-                            projectId: fileInfo.fileName,
-                            projectPath: fileInfo.filePath,
-                            lastAccessed: fileInfo.aTime,
-                            lastModified: fileInfo.mTime,
-                            created: fileInfo.createTime
-                            // TODO projectType
-                        });
+                        var wkspacePath = Path.join(fileInfo.filePath, ".wkspace");
+                        var wkspacePromise = fs.readJson(wkspacePath)
+                                                .then((wkspaceObj) => {
+                                                    return {
+                                                        validProject: true,
+                                                        projectId: fileInfo.fileName,
+                                                        projectPath: fileInfo.filePath,
+                                                        projectType: wkspaceObj.projectType,
+                                                        lastAccessed: fileInfo.aTime,
+                                                        lastModified: fileInfo.mTime,
+                                                        created: fileInfo.createTime
+                                                    };
+                                                })
+                                                .catch((err) => {
+                                                    return {
+                                                        validProject: false
+                                                    };
+                                                });
+                        wkspacePromises.push(wkspacePromise);
                     }
                 });
 
-                return projectList;
+                return Promise.all(wkspacePromises)
+                    .then((wkspaceResults) => {
+                        var projectList = [];
+                        wkspaceResults.forEach((wkspace) => {
+                            if (wkspace.validProject) {
+                                delete wkspace.validProject;
+                                projectList.push(wkspace);
+                            }
+                        });
+                        return projectList;
+                    });
+                
             })
             .catch((err) => {
                 console.log('ERR in getAllProjects: ', err);
