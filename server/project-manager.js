@@ -147,6 +147,30 @@ class ProjectManager extends EventEmitter {
             });
     }
 
+    getProjectInfo(projectId) {
+        return this.d_readyP
+            .then(() => {
+                if (!this.d_projects[projectId]) {
+                    return Promise.reject("Could not find project '" + projectId + "'");
+                }
+
+                const projectInfo = this.d_projects[projectId];
+                return this.getProjectAllFiles(projectId)
+                    .then((projectFiles) => {
+                        return {
+                            projectId: projectInfo.projectId,
+                            projectType: projectInfo.projectType,
+                            files: projectFiles
+                        }
+                    })
+                    .catch((err) => {
+                        return {
+                            error: err
+                        }
+                    })
+            })
+    }
+
     // ==================================================
     // INTERNAL HELPER FUNCTIONS
     // ==================================================

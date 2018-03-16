@@ -57,17 +57,25 @@ router.route('/projects')
 
 router.route('/projects/:project_id')
     .get((req, res) => {
-        // TODO: Do we actually need this?
-        // We could use projectMgr to get details
-        var project = d_projects[req.params.project_id];
-        if (project) {
-            res.json(project);
-        }
-        else {
-            res.status(404).json({
-                error: "Invalid Project ID"
-            });
-        }
+        projectMgr.getProjectInfo(req.params.project_id)
+            .then((projectInfo) => {
+                if (!projectInfo.error) {
+                    res.json(projectInfo);
+                }
+                else {
+                    res.status(404)
+                        .json({
+                            error: projectInfo.error
+                        });
+                }
+            })
+            .catch((err) => {
+                res.status(404)
+                    .json({
+                        error: err
+                    });
+            })
+       
     });
 
 router.route('/projects/:project_id/files')
