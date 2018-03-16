@@ -23,13 +23,6 @@ app.get('/', function (req, res) {
     //res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-var d_projects = {
-    "test-wkspace": {
-        projectName: 'test-wkspace',
-        type: 'java-project'
-    }
-};
-
 // Set up API routes
 // Template
 router.route('/templates')

@@ -21,6 +21,7 @@ class DefaultEditorPane extends Component {
             loadedFile: newProps.loadedFile
         });
     }
+
     render() {
         const editorOptions = {
             automaticLayout: true

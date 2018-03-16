@@ -32,6 +32,7 @@ class AppWorkspace extends Component {
         getProjectFile(this.state.projectId, filePath)
             .then((result) => {
                 result.json().then((fileResult) => {
+                    // TODO This should actually bubble up to AppMain
                     var workspace = this.state.workspace;
                     workspace.activeFile = fileResult;
                     this.setState({

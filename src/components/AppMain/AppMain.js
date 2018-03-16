@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { HotkeysTarget, Hotkeys, Hotkey } from '@blueprintjs/core';
+
 import { getProjectInfo } from '../../api/projects-api';
 
 import './AppMain.css';
@@ -17,6 +19,8 @@ class AppMain extends Component {
                 activeFile: null
             }
         };
+
+        this.handleSaveActiveFile = this.handleSaveActiveFile.bind(this);
     }
 
     componentWillMount() {
@@ -41,6 +45,14 @@ class AppMain extends Component {
 
     // TODO We should handle all the file add/deletion stuff here
     // and then update the projectFiles state
+    handleSaveActiveFile() {
+        if (this.state.workspace.activeFile) {
+            console.log('Saving File');
+        }
+        else {
+            console.log('No active file');
+        }
+    }
 
     render() {
         return (
@@ -50,6 +62,20 @@ class AppMain extends Component {
             </div>
         );
     }
+
+    renderHotkeys() {
+        return (
+            <Hotkeys>
+                <Hotkey global={true}
+                        combo="mod + s"
+                        label="Save Active File"
+                        preventDefault={true}
+                        onKeyDown={this.handleSaveActiveFile}/>
+            </Hotkeys>
+        )
+    }
 }
+
+HotkeysTarget(AppMain);
 
 export default AppMain;
