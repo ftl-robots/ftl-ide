@@ -7,9 +7,6 @@ import './AppMain.css';
 import AppWorkspace from '../AppWorkspace/AppWorkspace';
 import StatusBar from '../StatusBar/StatusBar';
 
-// Major Hack because diff doesn't seem to be es6 import compatible..
-const Diff = require('diff');
-
 // Helpers
 function updateExpandedState(nodes, pathArray, expanded) {
     if (pathArray.length === 0) return;
@@ -219,13 +216,10 @@ class AppMain extends Component {
     }
 
     _saveFileInternal() {
-        var patch = Diff.createPatch(this.state.workspace.activeFile.filePath,
-                                     this.activeFileSaveStatus.baseContent,
-                                    this.activeFileSaveStatus.currentContent);
         updateFileContents(this.state.projectId, 
                            this.state.workspace.activeFile.filePath,
-                           patch, 
-                           true).then((status) => {
+                           this.activeFileSaveStatus.currentContent, 
+                           false).then((status) => {
             if (status.status === 200 || status.status === 0) {
                 this.activeFileSaveStatus.baseContent = this.activeFileSaveStatus.currentContent;
                 this.activeFileSaveStatus.shouldSave = false;
