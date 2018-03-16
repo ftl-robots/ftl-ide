@@ -25,6 +25,11 @@ class AppWorkspace extends Component {
         };
 
         this.onFileSelected = this.onFileSelected.bind(this);
+        this.fileListHandlers = {
+            onWorkspaceNodeSelected: this.props.onWorkspaceNodeSelected,
+            onWorkspaceNodeExpanded: this.props.onWorkspaceNodeExpanded,
+            onWorkspaceNodeCollapsed: this.props.onWorkspaceNodeCollapsed
+        };
     }
 
     onFileSelected(filePath) {
@@ -44,6 +49,12 @@ class AppWorkspace extends Component {
     }
 
     componentWillReceiveProps(newProps) {
+        this.fileListHandlers = {
+            onWorkspaceNodeSelected: this.props.onWorkspaceNodeSelected,
+            onWorkspaceNodeExpanded: this.props.onWorkspaceNodeExpanded,
+            onWorkspaceNodeCollapsed: this.props.onWorkspaceNodeCollapsed
+        };
+        
         var workspace = this.state.workspace;
         workspace.files = newProps.workspace.files || [];
         this.setState({
@@ -84,7 +95,7 @@ class AppWorkspace extends Component {
                                 right:0,
                                 bottom: 0
                             }}>
-                    <Sidebar onFileSelected={this.onFileSelected} fileList={this.state.workspace.files}/>
+                    <Sidebar onFileSelected={this.onFileSelected} fileList={this.state.workspace.files} {...this.fileListHandlers}/>
                     <PanelGroup direction="column" 
                                 borderColor="grey"
                                 panelWidths={[

@@ -83,10 +83,19 @@ class SidebarFileList extends Component {
         this.forEachNode(this.state.nodes, (n) => n.isSelected = false);
 
         nodeData.isSelected = originallySelected === null ? true : !originallySelected;
+
+        if (nodeData.isSelected) {
+            this.props.onWorkspaceNodeSelected(nodeData.key);
+        }
+        else {
+            this.props.onWorkspaceNodeSelected(null);
+        }
         
         if (nodeData.type === FileStructureTypes.ITEM) {
             this.props.onFileSelected(nodeData.key);
         }
+
+        this.setState(this.state);
     }
 
     handleNodeCollapse(nodeData) {
@@ -94,7 +103,8 @@ class SidebarFileList extends Component {
             nodeData.isExpanded = false;
             nodeData.iconName = 'folder-open';
             this.setState(this.state);
-            // Inform upstairs
+            
+            this.props.onWorkspaceNodeCollapsed(nodeData.key);
         }
     }
 
@@ -103,7 +113,7 @@ class SidebarFileList extends Component {
             nodeData.isExpanded = true;
             nodeData.iconName = 'folder-open';
             this.setState(this.state);
-            // inform upstairs about what went down?
+            this.props.onWorkspaceNodeExpanded(nodeData.key);
         }
     }
 

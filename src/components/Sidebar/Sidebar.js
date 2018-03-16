@@ -12,9 +12,21 @@ class Sidebar extends Component {
         this.state = {
             fileList: this.props.fileList || []
         };
+
+        this.fileListHandlers = {
+            onWorkspaceNodeSelected: this.props.onWorkspaceNodeSelected,
+            onWorkspaceNodeExpanded: this.props.onWorkspaceNodeExpanded,
+            onWorkspaceNodeCollapsed: this.props.onWorkspaceNodeCollapsed
+        };
     }
 
     componentWillReceiveProps(newProps) {
+        this.fileListHandlers = {
+            onWorkspaceNodeSelected: this.props.onWorkspaceNodeSelected,
+            onWorkspaceNodeExpanded: this.props.onWorkspaceNodeExpanded,
+            onWorkspaceNodeCollapsed: this.props.onWorkspaceNodeCollapsed
+        };
+
         this.setState({
             fileList: newProps.fileList || []
         });
@@ -36,7 +48,7 @@ class Sidebar extends Component {
         return (
             <div className="sidebar-tabs-root">
                 <Tabs2 vertical={true} id="sidebar-tabs" className="pt-dark sidebar-tabs">
-                    <Tab2 title={filesTab} id="sidebar-files" panel={<SidebarFileList onFileSelected={this.props.onFileSelected} fileList={this.state.fileList}/>}></Tab2>
+                    <Tab2 title={filesTab} id="sidebar-files" panel={<SidebarFileList onFileSelected={this.props.onFileSelected} fileList={this.state.fileList} {...this.fileListHandlers}/>}></Tab2>
                     <Tab2 title={configTab} id="sidebar-settings"></Tab2>
                 </Tabs2>
             </div>
