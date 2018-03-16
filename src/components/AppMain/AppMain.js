@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { getProjectAllFiles } from '../../api/projects-api';
+import { getProjectInfo } from '../../api/projects-api';
 
 import './AppMain.css';
 import AppWorkspace from '../AppWorkspace/AppWorkspace';
@@ -20,23 +20,23 @@ class AppMain extends Component {
     }
 
     componentWillMount() {
-        // TODO call getProjectInfo, which should return a snapshot
-        getProjectAllFiles(this.state.projectId)
+        getProjectInfo(this.state.projectId)
             .then((response) => {
-                response.json().then((projFiles) => {
-                    var currWorkspace = this.state.workspace;
-                    currWorkspace.files = projFiles;
+                response.json().then((projInfo) => {
+                    var workspace = this.state.workspace;
+                    workspace.files = projInfo.files;
                     this.setState({
-                        workspace: currWorkspace
+                        workspace: workspace
                     });
                 })
                 .catch((err) => {
-                    console.log(err);
+                    console.error(err);
                 })
             })
-            .catch((error) => {
-                console.log(error);
+            .catch((err) => {
+                console.error(err);
             });
+        
     }
 
     // TODO We should handle all the file add/deletion stuff here

@@ -25,3 +25,7 @@ export function getProjectAllFiles(projectId) {
 export function getProjectFile(projectId, filePath) {
     return fetch('/api/projects/' + projectId + '/files/' + encodeURIComponent(filePath));
 }
+
+export function getProjectInfo(projectId) {
+    return fetch('/api/projects/' + projectId);
+}
