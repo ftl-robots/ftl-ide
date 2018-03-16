@@ -3,6 +3,9 @@ const EventEmitter = require('events');
 const Path = require('path');
 const fs = require('fs-extra');
 const Moniker = require('moniker');
+const Diff = require('diff');
+
+
 const FileStructureTypes = {
     FOLDER: 'folder',
     ITEM: 'item'
@@ -167,6 +170,40 @@ class ProjectManager extends EventEmitter {
                         return {
                             error: err
                         }
+                    })
+            })
+    }
+
+    updateFileContents(projectId, filePath, update, isDiff) {
+        return this.d_readyP
+            .then(() => {
+                return this.getProjectFile(projectId, filePath)
+                    .then((fileInfo) => {
+                        var oldValue = fileInfo.contents;
+                        var newValue;
+                        if (isDiff) {
+                            newValue = Diff.applyPatch(oldValue, update);
+                        }
+                        else {
+                            newValue = update;
+                        }
+                        return newValue;
+                    })
+                    .then((newFileContents) => {
+                        const savePath = Path.join(this.d_projectFSRoot, projectId, filePath);
+                        return fs.writeFile(savePath, newFileContents)
+                            .then(() => {
+                                return {
+                                    success: true
+                                };
+                            });
+
+                    })
+                    .catch((err) => {
+                        return {
+                            success: false,
+                            error: err
+                        };
                     })
             })
     }

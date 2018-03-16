@@ -38,7 +38,8 @@ class DefaultEditorPane extends Component {
                     <MonacoEditor theme="vs-dark"
                                   value={this.state.loadedFile.contents}
                                   language={fileLang}
-                                  options={editorOptions}/>
+                                  options={editorOptions}
+                                  onChange={this.props.onEditorContentsChange}/>
                 </div>
                 
             </div>

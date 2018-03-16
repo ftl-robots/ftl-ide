@@ -118,6 +118,32 @@ router.route('/projects/:project_id/files/:file_path')
     .put((req, res) => {
         // TODO This handles the UPDATE of a file
         // This should handle either diffs or full on update
+        const projectId = req.params.project_id; 
+        const filePath = req.params.file_path
+
+        projectMgr.updateFileContents(projectId, filePath, req.body.update, req.body.isDiff)
+            .then((results) => {
+                if (results.success) {
+                    res.json({
+                        success: true
+                    });
+                }
+                else {
+                    res.status(500)
+                        .json({
+                            success: false,
+                            error: err
+                        });
+                }
+            })
+            .catch((err) => {
+                res.status(500)
+                    .json({
+                        success: false,
+                        error: err
+                    });
+            })
+        
     })
     .delete((req, res) => {
         // TODO This handles the DELETION of a file or folder

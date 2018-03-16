@@ -7,8 +7,6 @@ import Sidebar from '../Sidebar/Sidebar';
 
 import DefaultEditor from '../editor-views/DefaultEditor/DefaultEditor';
 
-import { getProjectFile } from '../../api/projects-api';
-
 import './AppWorkspace.css';
 
 class AppWorkspace extends Component {
@@ -24,28 +22,11 @@ class AppWorkspace extends Component {
             }
         };
 
-        this.onFileSelected = this.onFileSelected.bind(this);
         this.fileListHandlers = {
             onWorkspaceNodeSelected: this.props.onWorkspaceNodeSelected,
             onWorkspaceNodeExpanded: this.props.onWorkspaceNodeExpanded,
             onWorkspaceNodeCollapsed: this.props.onWorkspaceNodeCollapsed
         };
-    }
-
-    onFileSelected(filePath) {
-
-        getProjectFile(this.state.projectId, filePath)
-            .then((result) => {
-                result.json().then((fileResult) => {
-                    // TODO This should actually bubble up to AppMain
-                    var workspace = this.state.workspace;
-                    workspace.activeFile = fileResult;
-                    this.setState({
-                        workspace: workspace
-                    });
-                    
-                })
-            });
     }
 
     componentWillReceiveProps(newProps) {
@@ -54,9 +35,10 @@ class AppWorkspace extends Component {
             onWorkspaceNodeExpanded: this.props.onWorkspaceNodeExpanded,
             onWorkspaceNodeCollapsed: this.props.onWorkspaceNodeCollapsed
         };
-        
+
         var workspace = this.state.workspace;
         workspace.files = newProps.workspace.files || [];
+        workspace.activeFile = newProps.workspace.activeFile;
         this.setState({
             workspace: workspace
         });
@@ -65,7 +47,7 @@ class AppWorkspace extends Component {
     render() {
         var editorView;
         if (this.state.workspace.activeFile) {
-            editorView = <DefaultEditor loadedFile={this.state.workspace.activeFile}/>
+            editorView = <DefaultEditor onEditorContentsChange={this.props.onEditorContentsChange} loadedFile={this.state.workspace.activeFile}/>
         }
         else {
             editorView = (
@@ -95,7 +77,7 @@ class AppWorkspace extends Component {
                                 right:0,
                                 bottom: 0
                             }}>
-                    <Sidebar onFileSelected={this.onFileSelected} fileList={this.state.workspace.files} {...this.fileListHandlers}/>
+                    <Sidebar onFileSelected={this.props.onFileSelected} fileList={this.state.workspace.files} {...this.fileListHandlers}/>
                     <PanelGroup direction="column" 
                                 borderColor="grey"
                                 panelWidths={[

@@ -1,11 +1,14 @@
 import React, { Component } from 'react';
 import { HotkeysTarget, Hotkeys, Hotkey } from '@blueprintjs/core';
 
-import { getProjectInfo } from '../../api/projects-api';
+import { getProjectInfo, getProjectFile, updateFileContents } from '../../api/projects-api';
 
 import './AppMain.css';
 import AppWorkspace from '../AppWorkspace/AppWorkspace';
 import StatusBar from '../StatusBar/StatusBar';
+
+// Major Hack because diff doesn't seem to be es6 import compatible..
+const Diff = require('diff');
 
 // Helpers
 function updateExpandedState(nodes, pathArray, expanded) {
@@ -80,12 +83,30 @@ class AppMain extends Component {
             }
         };
 
+        this.activeFileSaveStatus = {
+            baseContent: '',
+            currentContent: '',
+            shouldSave: false
+        };
+
+        this.autoSaveTimer = setInterval(() => {
+            if (this.activeFileSaveStatus.shouldSave) {
+                console.log('saving...');
+                this._saveFileInternal();
+            }
+        }, 10000);
+
         this.handleSaveActiveFile = this.handleSaveActiveFile.bind(this);
 
         this.workspaceHandlers = {
             onWorkspaceNodeSelected: this.handleWorkspaceNodeSelected.bind(this),
             onWorkspaceNodeExpanded: this.handleWorkspaceNodeExpanded.bind(this),
-            onWorkspaceNodeCollapsed: this.handleWorkspaceNodeCollapsed.bind(this)
+            onWorkspaceNodeCollapsed: this.handleWorkspaceNodeCollapsed.bind(this),
+            onFileSelected: this.handleWorkspaceFileSelected.bind(this)
+        };
+
+        this.activeFileHandlers = {
+            onEditorContentsChange: this.handleEditorContentsChange.bind(this)
         };
     }
 
@@ -111,8 +132,11 @@ class AppMain extends Component {
 
     // File Explorer handlers
     handleWorkspaceNodeSelected(path) {
+        if (!path) return;
+
         var files = this.state.workspace.files.slice(0);
         var ws = this.state.workspace;
+        
         var pathParts = path.split('/').slice(1);
 
         updateSelectedState(files, pathParts);
@@ -144,21 +168,78 @@ class AppMain extends Component {
         });
     }
 
+    handleWorkspaceFileSelected(path) {
+        var shouldLoad = false;
+        if (this.state.workspace.activeFile) {
+            if (this.state.workspace.activeFile.filePath !== path) {
+                console.log('Different file selected');
+                shouldLoad = true;
+            }
+        }
+        else {
+            shouldLoad = true;
+        }
+
+        if (shouldLoad) {
+            getProjectFile(this.state.projectId, path)
+                .then((result) => {
+                    result.json()
+                        .then((fileResult) => {
+                            var ws = this.state.workspace;
+                            ws.activeFile = fileResult;
+                            // Save this to the activeFileSaveStatus prop
+                            this.activeFileSaveStatus.baseContent = fileResult.contents;
+                            this.activeFileSaveStatus.currentContent = fileResult.contents;
+                            
+                            this.activeFileSaveStatus.shouldSave = false;
+                            this.setState({
+                                workspace: ws
+                            });
+                        });
+                });
+        }
+    }
+
+    // Active File
+    handleEditorContentsChange(newValue) {
+        this.activeFileSaveStatus.currentContent = newValue;
+        this.activeFileSaveStatus.shouldSave = true;
+    }
+
     // TODO We should handle all the file add/deletion stuff here
     // and then update the projectFiles state
     handleSaveActiveFile() {
         if (this.state.workspace.activeFile) {
             console.log('Saving File');
+            this._saveFileInternal();
         }
         else {
             console.log('No active file');
         }
     }
 
+    _saveFileInternal() {
+        var patch = Diff.createPatch(this.state.workspace.activeFile.filePath,
+                                     this.activeFileSaveStatus.baseContent,
+                                    this.activeFileSaveStatus.currentContent);
+        updateFileContents(this.state.projectId, 
+                           this.state.workspace.activeFile.filePath,
+                           patch, 
+                           true).then((status) => {
+            if (status.status === 200 || status.status === 0) {
+                this.activeFileSaveStatus.baseContent = this.activeFileSaveStatus.currentContent;
+                this.activeFileSaveStatus.shouldSave = false;
+            }
+            else {
+                console.error("Problem updating remote file: ", status.body);
+            }
+        });
+    }
+
     render() {
         return (
             <div className="app-main-view-root">
-                <AppWorkspace {...this.state} {...this.workspaceHandlers}/>
+                <AppWorkspace {...this.state} {...this.workspaceHandlers} {...this.activeFileHandlers}/>
                 <StatusBar projectId={this.state.projectId}/>
             </div>
         );

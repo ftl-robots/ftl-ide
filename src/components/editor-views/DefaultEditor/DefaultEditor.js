@@ -17,7 +17,6 @@ class DefaultEditorView extends Component {
     }
 
     componentWillReceiveProps(newProps) {
-        console.log(newProps);
         this.setState({
             loadedFile: newProps.loadedFile
         });
@@ -26,7 +25,7 @@ class DefaultEditorView extends Component {
     render() {
         return (
             <div className="main-area-root default-editor-view-root">
-                <DefaultEditorPane loadedFile={this.state.loadedFile}/>
+                <DefaultEditorPane onEditorContentsChange={this.props.onEditorContentsChange} loadedFile={this.state.loadedFile}/>
                 <div className="default-editor-view-sidebar pt-dark">
                     <Popover content={<div style={{padding:"5px"}}><MarkdownViewer filename={DemoText}/></div>} position={Position.LEFT_TOP}> 
                         <Tooltip content="Documentation" position={Position.LEFT}>

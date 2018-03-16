@@ -29,3 +29,18 @@ export function getProjectFile(projectId, filePath) {
 export function getProjectInfo(projectId) {
     return fetch('/api/projects/' + projectId);
 }
+
+export function updateFileContents(projectId, filePath, update, isDiff) {
+    var updateObj = {
+        update: update,
+        isDiff: !!isDiff
+    };
+
+    return fetch('/api/projects/' + projectId + '/files/' + encodeURIComponent(filePath), {
+        body: JSON.stringify(updateObj),
+        method: 'PUT',
+        headers: new Headers({
+            'Content-Type': 'application/json'
+        })
+    });
+}
