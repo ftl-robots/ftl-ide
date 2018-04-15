@@ -16,6 +16,15 @@ class DefaultEditorPane extends Component {
         };
     }
 
+    editorDidMount(editor, monaco) {
+        
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, () => {
+            if (this.props.onSaveRequested) {
+                this.props.onSaveRequested();
+            }
+        });
+    }
+
     componentWillReceiveProps(newProps) {
         this.setState({
             loadedFile: newProps.loadedFile
@@ -39,7 +48,8 @@ class DefaultEditorPane extends Component {
                                   value={this.state.loadedFile.contents}
                                   language={fileLang}
                                   options={editorOptions}
-                                  onChange={this.props.onEditorContentsChange}/>
+                                  onChange={this.props.onEditorContentsChange}
+                                  editorDidMount={this.editorDidMount.bind(this)}/>
                 </div>
                 
             </div>

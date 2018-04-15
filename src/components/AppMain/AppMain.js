@@ -99,7 +99,8 @@ class AppMain extends Component {
             onWorkspaceNodeSelected: this.handleWorkspaceNodeSelected.bind(this),
             onWorkspaceNodeExpanded: this.handleWorkspaceNodeExpanded.bind(this),
             onWorkspaceNodeCollapsed: this.handleWorkspaceNodeCollapsed.bind(this),
-            onFileSelected: this.handleWorkspaceFileSelected.bind(this)
+            onFileSelected: this.handleWorkspaceFileSelected.bind(this),
+            handleSaveActiveFile: this.handleSaveActiveFile.bind(this)
         };
 
         this.activeFileHandlers = {

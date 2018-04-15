@@ -47,7 +47,9 @@ class AppWorkspace extends Component {
     render() {
         var editorView;
         if (this.state.workspace.activeFile) {
-            editorView = <DefaultEditor onEditorContentsChange={this.props.onEditorContentsChange} loadedFile={this.state.workspace.activeFile}/>
+            editorView = <DefaultEditor onEditorContentsChange={this.props.onEditorContentsChange} 
+                                        loadedFile={this.state.workspace.activeFile}
+                                        onSaveRequested={this.props.handleSaveActiveFile}/>
         }
         else {
             editorView = (
