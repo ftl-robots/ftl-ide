@@ -25,7 +25,11 @@ class AppWorkspace extends Component {
         this.fileListHandlers = {
             onWorkspaceNodeSelected: this.props.onWorkspaceNodeSelected,
             onWorkspaceNodeExpanded: this.props.onWorkspaceNodeExpanded,
-            onWorkspaceNodeCollapsed: this.props.onWorkspaceNodeCollapsed
+            onWorkspaceNodeCollapsed: this.props.onWorkspaceNodeCollapsed,
+            onWorkspaceAddFile: this.props.onWorkspaceAddFile,
+            onWorkspaceAddFolder: this.props.onWorkspaceAddFolder,
+            onWorkspaceDeleteFile: this.props.onWorkspaceDeleteFile,
+            onWorkspaceDeleteFolder: this.props.onWorkspaceDeleteFolder
         };
     }
 
@@ -33,7 +37,11 @@ class AppWorkspace extends Component {
         this.fileListHandlers = {
             onWorkspaceNodeSelected: this.props.onWorkspaceNodeSelected,
             onWorkspaceNodeExpanded: this.props.onWorkspaceNodeExpanded,
-            onWorkspaceNodeCollapsed: this.props.onWorkspaceNodeCollapsed
+            onWorkspaceNodeCollapsed: this.props.onWorkspaceNodeCollapsed,
+            onWorkspaceAddFile: this.props.onWorkspaceAddFile,
+            onWorkspaceAddFolder: this.props.onWorkspaceAddFolder,
+            onWorkspaceDeleteFile: this.props.onWorkspaceDeleteFile,
+            onWorkspaceDeleteFolder: this.props.onWorkspaceDeleteFolder
         };
 
         var workspace = this.state.workspace;
@@ -47,7 +55,7 @@ class AppWorkspace extends Component {
     render() {
         var editorView;
         if (this.state.workspace.activeFile) {
-            editorView = <DefaultEditor onEditorContentsChange={this.props.onEditorContentsChange} 
+            editorView = <DefaultEditor onEditorContentsChange={this.props.onEditorContentsChange}
                                         loadedFile={this.state.workspace.activeFile}
                                         onSaveRequested={this.props.handleSaveActiveFile}/>
         }
@@ -65,8 +73,8 @@ class AppWorkspace extends Component {
         }
         return (
             <div className="app-main-view-workspace">
-                <PanelGroup direction="row" 
-                            borderColor="grey" 
+                <PanelGroup direction="row"
+                            borderColor="grey"
                             panelWidths={[
                                 { size: 250, minSize: 50},
                                 { minSize: 100}
@@ -80,13 +88,13 @@ class AppWorkspace extends Component {
                                 bottom: 0
                             }}>
                     <Sidebar onFileSelected={this.props.onFileSelected} fileList={this.state.workspace.files} {...this.fileListHandlers}/>
-                    <PanelGroup direction="column" 
+                    <PanelGroup direction="column"
                                 borderColor="grey"
                                 panelWidths={[
                                     { minSize: 200, resize: 'stretch'},
-                                    { size: 200, minSize: 50, resize: 'dynamic'}  
+                                    { size: 200, minSize: 50, resize: 'dynamic'}
                                 ]}>
-                        
+
                         {editorView}
                         <AppConsole />
                     </PanelGroup>

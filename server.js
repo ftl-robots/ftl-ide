@@ -33,6 +33,23 @@ router.route('/templates')
             });
     });
 
+// TemplateInfo
+router.route("/templates/:template_name")
+    .get((req, res) => {
+        projectMgr.getTemplateInfo(req.params.template_name)
+            .then((templateInfo) => {
+                if (templateInfo) {
+                    res.json(templateInfo);
+                }
+                else {
+                    res.status(404)
+                        .json({
+                            error: "Invalid template '" + req.params.template_name + "'"
+                        });
+                }
+            });
+    });
+
 // Project routes
 router.route('/projects')
     .get((req, res) => {
@@ -68,8 +85,22 @@ router.route('/projects/:project_id')
                         error: err
                     });
             })
-       
+
     });
+
+router.route("/projects/:project_id/filetypes")
+    .get((req, res) => {
+        projectMgr.getValidProjectFileTypes(req.params.project_id)
+            .then((validFileTypes) => {
+                res.json(validFileTypes);
+            })
+            .catch((err) => {
+                res.status(404)
+                    .json({
+                        error: err
+                    });
+            });
+    })
 
 router.route('/projects/:project_id/files')
     .get((req, res) => {
@@ -114,11 +145,67 @@ router.route('/projects/:project_id/files/:file_path')
     })
     .post((req, res) => {
         // TODO this handles the CREATION of a new file or folder
+        const projectId = req.params.project_id;
+        const createPath = req.params.file_path;
+        if (req.body.createType === "file") {
+            projectMgr.createFileFromTemplate(projectId, createPath, req.body.templateName)
+                .then((result) => {
+                    if (result.success) {
+                        res.json({
+                            success: true
+                        });
+                    }
+                    else {
+                        res.status(403)
+                            .json({
+                                success: false,
+                                error: result.error
+                            });
+                    }
+                })
+                .catch((err) => {
+                    res.status(403)
+                        .json({
+                            success: false,
+                            error: err
+                        });
+                });
+        }
+        else if (req.body.createType === "folder") {
+            projectMgr.createFolder(projectId, createPath)
+            .then((result) => {
+                if (result.success) {
+                    res.json({
+                        success: true
+                    });
+                }
+                else {
+                    res.status(403)
+                        .json({
+                            success: false,
+                            error: result.error
+                        });
+                }
+            })
+            .catch((err) => {
+                res.status(403)
+                    .json({
+                        success: false,
+                        error: result.error
+                    });
+            });
+        }
+        else {
+            res.status(403)
+                .json({
+                    success: false,
+                    error: "Invalid createType"
+                });
+        }
+
     })
     .put((req, res) => {
-        // TODO This handles the UPDATE of a file
-        // This should handle either diffs or full on update
-        const projectId = req.params.project_id; 
+        const projectId = req.params.project_id;
         const filePath = req.params.file_path
 
         projectMgr.updateFileContents(projectId, filePath, req.body.update, req.body.isDiff)
@@ -143,10 +230,66 @@ router.route('/projects/:project_id/files/:file_path')
                         error: err
                     });
             })
-        
+
     })
     .delete((req, res) => {
-        // TODO This handles the DELETION of a file or folder
+        const projectId = req.params.project_id;
+        const deletePath = req.params.file_path;
+        if (req.body.deleteType === "file") {
+            projectMgr.deleteFile(projectId, deletePath)
+                .then((result) => {
+                    if (result.success) {
+                        res.json({
+                            success: true
+                        });
+                    }
+                    else {
+                        res.status(403)
+                            .json({
+                                success: false,
+                                error: result.error
+                            });
+                    }
+                })
+                .catch((err) => {
+                    res.status(403)
+                        .json({
+                            success: false,
+                            error: err
+                        });
+                });
+        }
+        else if (req.body.deleteType === "folder") {
+            projectMgr.deleteFolder(projectId, deletePath)
+                .then((result) => {
+                    if (result.success) {
+                        res.json({
+                            success: true
+                        });
+                    }
+                    else {
+                        res.status(403)
+                            .json({
+                                success: false,
+                                error: result.error
+                            });
+                    }
+                })
+                .catch((err) => {
+                    res.status(403)
+                        .json({
+                            success: false,
+                            error: err
+                        });
+                });
+        }
+        else {
+            res.status(403)
+                .json({
+                    success: false,
+                    error: "Invalid createType"
+                });
+        }
     })
 
 app.use('/api', router);

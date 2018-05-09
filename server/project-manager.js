@@ -29,6 +29,9 @@ class ProjectManager extends EventEmitter {
         this.d_projects = {}; // Key: Project ID, value, project details
         this.d_templates = [];
 
+        // Store a key-ed set of project type -> info
+        this.d_templateInfo = {};
+
         this.reinitialize();
     }
 
@@ -46,6 +49,12 @@ class ProjectManager extends EventEmitter {
                 .then(this._getProjectTemplatesInternal)
                 .then((projectTemplates) => {
                     this.d_templates = projectTemplates;
+                    projectTemplates.forEach((template) => {
+                        this.d_templateInfo[template.templateName] = {
+                            newFileTypes: template.newFileTypes,
+                            buildInfo: template.buildInfo
+                        };
+                    });
                 })
                 .then(() => {
                     resolve();
@@ -61,6 +70,13 @@ class ProjectManager extends EventEmitter {
         return this.d_readyP
             .then(() => {
                 return this.d_templates;
+            });
+    }
+
+    getTemplateInfo(templateName) {
+        return this.d_readyP
+            .then(() => {
+                return this.d_templateInfo[templateName];
             });
     }
 
@@ -129,7 +145,7 @@ class ProjectManager extends EventEmitter {
         return this.d_readyP
             .then(() => {
                 var filePath = Path.join(this.d_projectFSRoot, projectId, projectFilePath);
-                
+
                 return fs.readFile(filePath)
                     .then((fileData) => {
                         return {
@@ -208,6 +224,148 @@ class ProjectManager extends EventEmitter {
             })
     }
 
+    createFolder(projectId, folderPath) {
+        return this.d_readyP
+            .then(() => {
+                const newFolderPath = Path.join(this.d_projectFSRoot, projectId, folderPath);
+                return fs.mkdir(newFolderPath)
+                    .then(() => {
+                        return {
+                            success: true
+                        }
+                    })
+                    .catch((err) => {
+                        return {
+                            success: false,
+                            error: err
+                        }
+                    });
+            });
+    }
+
+    deleteFolder(projectId, folderPath) {
+        return this.d_readyP
+            .then(() => {
+                const delFolderPath = Path.join(this.d_projectFSRoot, projectId, folderPath);
+                return fs.rmdir(delFolderPath)
+                    .then(() => {
+                        return {
+                            success: true
+                        }
+                    })
+                    .catch((err) => {
+                        return {
+                            success: false,
+                            error: err
+                        }
+                    });
+            });
+    }
+
+    deleteFile(projectId, filePath) {
+        return this.d_readyP
+            .then(() => {
+                const delFilePath = Path.join(this.d_projectFSRoot, projectId, filePath);
+                return fs.unlink(delFilePath)
+                    .then(() => {
+                        return {
+                            success: true
+                        }
+                    })
+                    .catch((err) => {
+                        return {
+                            success: false,
+                            error: err
+                        }
+                    });
+            });
+    }
+
+    createFileFromTemplate(projectId, filePath, fileTemplateType) {
+        return this.d_readyP
+            .then(() => {
+                const newFilePath = Path.join(this.d_projectFSRoot, projectId, filePath);
+                // Generate the template
+                this.getValidProjectFileTypes(projectId)
+                    .then((validFileTypes) => {
+                        // match the file types
+                        var fileTemplateFound = false;
+                        for (var i = 0; i < validFileTypes.length; i++) {
+                            if (fileTemplateType === validFileTypes[i].fileType) {
+                                fileTemplateFound = true;
+                                break;
+                            }
+                        }
+
+                        if (!fileTemplateFound) {
+                            throw "Invalid fileTemplateType '" + fileTemplateType + "'";
+                        }
+
+                        return this._getNewFileTemplateInternal(this.d_projects[projectId].projectType, fileTemplateType)
+                            .then((templateContents) => {
+                                var fileDirname = Path.dirname(filePath);
+                                var fileExt = Path.extname(filePath);
+                                var fileName = Path.basename(filePath, fileExt);
+
+                                var templateContentsStr = templateContents.toString();
+
+                                // Generate the list of constants
+                                var javaClassPackage = fileDirname.split("/").join(".");
+                                var javaClassName = fileName;
+                                var replacements = {
+                                    "%NEW_JAVA_CLASS_PACKAGE%": javaClassPackage,
+                                    "%NEW_JAVA_CLASS_NAME%": javaClassName
+                                };
+
+                                // Do replacements
+                                Object.keys(replacements).forEach((placeholder) => {
+                                    var replacementVal = replacements[placeholder];
+                                    var matcher = new RegExp(placeholder, "g");
+                                    templateContentsStr = templateContentsStr.replace(matcher, replacementVal);
+                                });
+
+                                return fs.writeFile(newFilePath, templateContentsStr)
+                                    .then(() => {
+                                        return {
+                                            success: true
+                                        };
+                                    })
+                                    .catch((err) => {
+                                        return {
+                                            success: false,
+                                            error: err
+                                        };
+                                    });
+                            });
+                    });
+            });
+    }
+
+    getValidProjectFileTypes(projectId) {
+        return this.d_readyP
+            .then(() => {
+                // Find the project type
+                const projInfo = this.d_projects[projectId];
+                if (projInfo) {
+                    const templateInfo = this.d_templateInfo[projInfo.projectType];
+                    if (templateInfo) {
+                        if (templateInfo.newFileTypes) {
+                            return templateInfo.newFileTypes;
+                        }
+                        else {
+                            return [];
+                        }
+                    }
+                    else {
+                        throw "Invalid project type '" + projInfo.projectType + "'";
+                    }
+                }
+                else {
+                    throw "No project info found for '" + projectId + "'";
+                }
+            });
+    }
+
     // ==================================================
     // INTERNAL HELPER FUNCTIONS
     // ==================================================
@@ -269,7 +427,7 @@ class ProjectManager extends EventEmitter {
                                 label: statResult.fileName,
                             });
                         }
-                        
+
                     }
                 });
 
@@ -334,6 +492,10 @@ class ProjectManager extends EventEmitter {
                                                     return {
                                                         templateName: statResult.fileName,
                                                         templateDesc: templateInfo.description,
+                                                        // Additional information about a template
+                                                        newFileTypes: templateInfo.newFileTypes,
+                                                        buildInfo: templateInfo.buildInfo
+                                                        // TODO add build instructions etc
                                                     };
                                                 });
                         templatePromises.push(templateDescP);
@@ -346,6 +508,13 @@ class ProjectManager extends EventEmitter {
                 console.log('err: ', err);
                 return [];
             })
+    }
+
+    _getNewFileTemplateInternal(projectType, templateName) {
+        const fileTemplatePath = Path.join(PROJECT_TEMPLATES_DIR, projectType,
+                                           "newfile-templates", templateName + ".template");
+        return fs.readFile(fileTemplatePath);
+
     }
 
     _getAllProjectsInternal() {
@@ -385,7 +554,7 @@ class ProjectManager extends EventEmitter {
                                     });
                     statPromises.push(statP);
                 });
-                
+
                 return Promise.all(statPromises);
             })
             .then((files) => {
@@ -426,7 +595,7 @@ class ProjectManager extends EventEmitter {
                         });
                         return projectList;
                     });
-                
+
             })
             .catch((err) => {
                 console.log('ERR in getAllProjects: ', err);

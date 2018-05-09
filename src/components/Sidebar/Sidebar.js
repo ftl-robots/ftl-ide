@@ -8,7 +8,7 @@ import './Sidebar.css';
 class Sidebar extends Component {
     constructor(props) {
         super(props);
-        
+
         this.state = {
             fileList: this.props.fileList || []
         };
@@ -16,7 +16,11 @@ class Sidebar extends Component {
         this.fileListHandlers = {
             onWorkspaceNodeSelected: this.props.onWorkspaceNodeSelected,
             onWorkspaceNodeExpanded: this.props.onWorkspaceNodeExpanded,
-            onWorkspaceNodeCollapsed: this.props.onWorkspaceNodeCollapsed
+            onWorkspaceNodeCollapsed: this.props.onWorkspaceNodeCollapsed,
+            onAddFile: this.props.onWorkspaceAddFile,
+            onAddFolder: this.props.onWorkspaceAddFolder,
+            onDeleteFile: this.props.onWorkspaceDeleteFile,
+            onDeleteFolder: this.props.onWorkspaceDeleteFolder
         };
     }
 
@@ -24,7 +28,11 @@ class Sidebar extends Component {
         this.fileListHandlers = {
             onWorkspaceNodeSelected: this.props.onWorkspaceNodeSelected,
             onWorkspaceNodeExpanded: this.props.onWorkspaceNodeExpanded,
-            onWorkspaceNodeCollapsed: this.props.onWorkspaceNodeCollapsed
+            onWorkspaceNodeCollapsed: this.props.onWorkspaceNodeCollapsed,
+            onAddFile: this.props.onWorkspaceAddFile,
+            onAddFolder: this.props.onWorkspaceAddFolder,
+            onDeleteFile: this.props.onWorkspaceDeleteFile,
+            onDeleteFolder: this.props.onWorkspaceDeleteFolder
         };
 
         this.setState({
@@ -44,7 +52,7 @@ class Sidebar extends Component {
                 <Icon iconName="wrench"/>
             </Tooltip>
         );
-        
+
         return (
             <div className="sidebar-tabs-root">
                 <Tabs2 vertical={true} id="sidebar-tabs" className="pt-dark sidebar-tabs">

@@ -1,3 +1,11 @@
 {
-    "description": "Basic Robot Java Program"
+    "description": "Basic Robot Java Program",
+    "newFileTypes": [
+        {
+            "fileType": "basic-java-simple-java-class",
+            "displayText": "Simple Java Class",
+            "extension": "java"
+        }
+    ],
+    "buildInfo": {}
 }

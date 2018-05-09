@@ -44,3 +44,7 @@ export function updateFileContents(projectId, filePath, update, isDiff) {
         })
     });
 }
+
+export function addFolder(projectId, folderPath) {
+
+}

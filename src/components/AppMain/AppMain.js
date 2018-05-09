@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { HotkeysTarget, Hotkeys, Hotkey } from '@blueprintjs/core';
+import { HotkeysTarget, Hotkeys, Hotkey, Dialog, Button, Intent } from '@blueprintjs/core';
 
 import { getProjectInfo, getProjectFile, updateFileContents } from '../../api/projects-api';
 
@@ -100,7 +100,11 @@ class AppMain extends Component {
             onWorkspaceNodeExpanded: this.handleWorkspaceNodeExpanded.bind(this),
             onWorkspaceNodeCollapsed: this.handleWorkspaceNodeCollapsed.bind(this),
             onFileSelected: this.handleWorkspaceFileSelected.bind(this),
-            handleSaveActiveFile: this.handleSaveActiveFile.bind(this)
+            handleSaveActiveFile: this.handleSaveActiveFile.bind(this),
+            onWorkspaceAddFile: this.handleWorkspaceAddFile.bind(this),
+            onWorkspaceAddFolder: this.handleWorkspaceAddFolder.bind(this),
+            onWorkspaceDeleteFile: this.handleWorkspaceDeleteFile.bind(this),
+            onWorkspaceDeleteFolder: this.handleWorkspaceDeleteFolder.bind(this)
         };
 
         this.activeFileHandlers = {
@@ -125,7 +129,7 @@ class AppMain extends Component {
             .catch((err) => {
                 console.error(err);
             });
-        
+
     }
 
     // File Explorer handlers
@@ -134,7 +138,7 @@ class AppMain extends Component {
 
         var files = this.state.workspace.files.slice(0);
         var ws = this.state.workspace;
-        
+
         var pathParts = path.split('/').slice(1);
 
         updateSelectedState(files, pathParts);
@@ -188,7 +192,7 @@ class AppMain extends Component {
                             // Save this to the activeFileSaveStatus prop
                             this.activeFileSaveStatus.baseContent = fileResult.contents;
                             this.activeFileSaveStatus.currentContent = fileResult.contents;
-                            
+
                             this.activeFileSaveStatus.shouldSave = false;
                             this.setState({
                                 workspace: ws
@@ -196,6 +200,58 @@ class AppMain extends Component {
                         });
                 });
         }
+    }
+
+    handleWorkspaceAddFile(path) {
+        console.log("Handle Add File: ", path);
+        this.setState({
+            workspaceDialogInfo: {
+                title: "Add File",
+                type: "addFile",
+                rootPath: path
+            }
+        });
+    }
+
+    handleWorkspaceAddFolder(path) {
+        console.log("Handle Add Folder: ", path);
+        this.setState({
+            workspaceDialogInfo: {
+                title: "Add Folder",
+                type: "addFolder",
+                rootPath: path
+            }
+        });
+    }
+
+    handleWorkspaceDeleteFile(path) {
+        console.log("Handle Delete File: ", path);
+    }
+
+    handleWorkspaceDeleteFolder(path) {
+        console.log("Handle Delete Folder: ", path);
+    }
+
+    // Actual API calls
+    handleAddFileRequest() {
+        console.log("Will handle Add File Request here");
+    }
+
+    handleAddFolderRequest() {
+        console.log("Will handle Add Folder Request here");
+        const newFolderName = this.addFolderInput.value;
+        const existingPath = this.state.workspaceDialogInfo.rootPath;
+
+        console.log("Sending ", existingPath, newFolderName);
+
+        this.addFolderInput = undefined;
+        this.handleDialogCancel();
+    }
+
+    handleDialogCancel() {
+        this.setState({
+            workspaceDialogInfo: null
+        });
     }
 
     // Active File
@@ -217,9 +273,9 @@ class AppMain extends Component {
     }
 
     _saveFileInternal() {
-        updateFileContents(this.state.projectId, 
+        updateFileContents(this.state.projectId,
                            this.state.workspace.activeFile.filePath,
-                           this.activeFileSaveStatus.currentContent, 
+                           this.activeFileSaveStatus.currentContent,
                            false).then((status) => {
             if (status.status === 200 || status.status === 0) {
                 this.activeFileSaveStatus.baseContent = this.activeFileSaveStatus.currentContent;
@@ -232,10 +288,72 @@ class AppMain extends Component {
     }
 
     render() {
+        // Set up the dialog properties (if necessary)
+        var dialogVisible = false;
+        var dialogTitle = "";
+        var dialogContent = <div/>;
+        var dialogFooter = <div/>;
+        if (this.state.workspaceDialogInfo) {
+            var wsDialogInfo = this.state.workspaceDialogInfo;
+            dialogVisible = true;
+            dialogTitle = wsDialogInfo.title;
+
+            if (wsDialogInfo.type === "addFolder") {
+                dialogTitle = "Add Folder"
+                dialogContent = <div className="pt-dialog-body">
+                                    <span>Folder Name:</span>
+                                    <input className="pt-input pt-fill"
+                                           type="text"
+                                           ref={(inputElt) => {this.addFolderInput = inputElt}}/>
+                                </div>;
+            }
+            else if (wsDialogInfo.type === "addFile") {
+                dialogTitle = "Add File"
+                dialogContent = <div className="pt-dialog-body">
+                                    <span>File Name:</span>
+                                    <input className="pt-input pt-fill"
+                                           type="text"
+                                           ref={(inputElt) => {this.addFolderInput = inputElt}}/>
+                                    <span>File Type:</span>
+                                    <div className="pt-select pt-fill">
+                                        <select>
+                                            <option selected>One</option>
+                                        </select>
+                                    </div>
+                                </div>;
+            }
+
+            // Common footer
+            if (wsDialogInfo.type === "addFile" || wsDialogInfo.type === "addFolder") {
+                var addHandler = wsDialogInfo.type === "addFile" ?
+                                this.handleAddFileRequest.bind(this) :
+                                this.handleAddFolderRequest.bind(this);
+
+                dialogFooter = <div className="pt-dialog-footer">
+                                    <div className="pt-dialog-footer-actions">
+                                        <Button text="Cancel"
+                                                onClick={this.handleDialogCancel.bind(this)}/>
+                                        <Button intent={Intent.PRIMARY}
+                                                text="Add"
+                                                onClick={addHandler}/>
+                                    </div>
+                                </div>;
+            }
+        }
+
         return (
             <div className="app-main-view-root">
                 <AppWorkspace {...this.state} {...this.workspaceHandlers} {...this.activeFileHandlers}/>
                 <StatusBar projectId={this.state.projectId}/>
+                {/* --- Dialog boxes for adding/deleting files and folder --- */}
+                <Dialog
+                    isOpen={dialogVisible}
+                    title={dialogTitle}
+                    onClose={this.handleDialogCancel.bind(this)}>
+                    {dialogContent}
+                    {dialogFooter}
+                </Dialog>
+
             </div>
         );
     }
