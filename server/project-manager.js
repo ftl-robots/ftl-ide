@@ -286,7 +286,7 @@ class ProjectManager extends EventEmitter {
             .then(() => {
                 const newFilePath = Path.join(this.d_projectFSRoot, projectId, filePath);
                 // Generate the template
-                this.getValidProjectFileTypes(projectId)
+                return this.getValidProjectFileTypes(projectId)
                     .then((validFileTypes) => {
                         // match the file types
                         var fileTemplateFound = false;
@@ -310,7 +310,11 @@ class ProjectManager extends EventEmitter {
                                 var templateContentsStr = templateContents.toString();
 
                                 // Generate the list of constants
-                                var javaClassPackage = fileDirname.split("/").join(".");
+                                var splitDir = fileDirname.split("/");
+                                if (!splitDir[0]) {
+                                    splitDir.splice(0, 1);
+                                }
+                                var javaClassPackage = splitDir.join(".");
                                 var javaClassName = fileName;
                                 var replacements = {
                                     "%NEW_JAVA_CLASS_PACKAGE%": javaClassPackage,

@@ -1,7 +1,9 @@
 import React, { Component } from 'react';
 import { HotkeysTarget, Hotkeys, Hotkey, Dialog, Button, Intent } from '@blueprintjs/core';
 
-import { getProjectInfo, getProjectFile, updateFileContents } from '../../api/projects-api';
+import { getProjectInfo, getProjectFile, updateFileContents, 
+         addFolder, addFile, deleteArtifact,
+         getNewFileTypes } from '../../api/projects-api';
 
 import './AppMain.css';
 import AppWorkspace from '../AppWorkspace/AppWorkspace';
@@ -67,6 +69,55 @@ function updateSelectedState(nodes, pathArray) {
     _find(nodes, pathArray);
 }
 
+function _restoreFileListStates(incomingList, oldList) {
+    // generate a path key for each thing in the old list
+    var pathSettings = {};
+
+    function _traverse(node, prefix, isOldState) {
+        var currPath = prefix + node.label;
+        
+        var data;
+        if (isOldState) {
+            data = {};
+            if (node.isSelected) {
+                data.isSelected = true;
+            }
+            if (node.isExpanded) {
+                data.isExpanded = true;
+            }
+
+            if (Object.keys(data).length > 0) {
+                pathSettings[currPath] = data;
+            }
+        }
+        else {
+            data = pathSettings[currPath] || {};
+            if (data.isSelected) {
+                node.isSelected = true;
+            }
+            if (data.isExpanded) {
+                node.isExpanded = true;
+            }
+        }
+
+        if (node.children) {
+            for (var i = 0; i < node.children.length; i++) {
+                _traverse(node.children[i], currPath + "/", isOldState);
+            }
+        }
+    }
+
+    // Generate the old list
+    for (var i = 0; i < oldList.length; i++) {
+        _traverse(oldList[i], "/", true);
+    }
+
+    // go through the new list
+    for (var j = 0; j < incomingList.length; j++) {
+        _traverse(incomingList[j], "/", false);
+    }
+}
+
 class AppMain extends Component {
     constructor(props) {
         super(props);
@@ -113,11 +164,19 @@ class AppMain extends Component {
     }
 
     componentWillMount() {
+        this.reloadFileList();
+    }
+
+    reloadFileList() {
+        var oldFiles = this.state.workspace.files.slice(0);
         getProjectInfo(this.state.projectId)
             .then((response) => {
                 response.json().then((projInfo) => {
                     var workspace = this.state.workspace;
                     workspace.files = projInfo.files;
+
+                    // Try to restore expanded state
+                    _restoreFileListStates(workspace.files, oldFiles);
                     this.setState({
                         workspace: workspace
                     });
@@ -129,7 +188,6 @@ class AppMain extends Component {
             .catch((err) => {
                 console.error(err);
             });
-
     }
 
     // File Explorer handlers
@@ -203,18 +261,21 @@ class AppMain extends Component {
     }
 
     handleWorkspaceAddFile(path) {
-        console.log("Handle Add File: ", path);
-        this.setState({
-            workspaceDialogInfo: {
-                title: "Add File",
-                type: "addFile",
-                rootPath: path
-            }
-        });
+        getNewFileTypes(this.state.projectId)
+            .then((fileTypes) => {
+                this.setState({
+                    workspaceDialogInfo: {
+                        title: "Add File",
+                        type: "addFile",
+                        rootPath: path,
+                        fileTypes: fileTypes
+                    }
+                });
+            })
+        
     }
 
     handleWorkspaceAddFolder(path) {
-        console.log("Handle Add Folder: ", path);
         this.setState({
             workspaceDialogInfo: {
                 title: "Add Folder",
@@ -225,27 +286,122 @@ class AppMain extends Component {
     }
 
     handleWorkspaceDeleteFile(path) {
-        console.log("Handle Delete File: ", path);
+        this.setState({
+            workspaceDialogInfo: {
+                title: "Delete File",
+                type: "deleteFile",
+                rootPath: path
+            }
+        });
     }
 
     handleWorkspaceDeleteFolder(path) {
-        console.log("Handle Delete Folder: ", path);
+        this.setState({
+            workspaceDialogInfo: {
+                title: "Delete Folder",
+                type: "deleteFolder",
+                rootPath: path
+            }
+        });
     }
 
     // Actual API calls
     handleAddFileRequest() {
-        console.log("Will handle Add File Request here");
+        var newFileName = this.addFileInput.value;
+        const existingPath = this.state.workspaceDialogInfo.rootPath;
+
+        // Pull the file extension
+        var fileExt;
+        var wsDialogInfo = this.state.workspaceDialogInfo;
+        for (var i = 0; i < wsDialogInfo.fileTypes.length; i++) {
+            if (wsDialogInfo.fileTypes[i].fileType === this.addFileTypeInput.value) {
+                fileExt = wsDialogInfo.fileTypes[i].extension;
+                break;
+            }
+        }
+
+        if (fileExt) {
+            newFileName += "." + fileExt;
+        }
+
+        const newPath = existingPath + "/" + newFileName;
+        const templateName = this.addFileTypeInput.value;
+        
+        addFile(this.state.projectId, newPath, templateName)
+            .then((result) => {
+                if (result.status !== 200) {
+                    // Invalid response code
+                    result.json()
+                        .then((response) => {
+                            console.warn("(" + result.status + ") ", response);
+                        });
+                }
+            })
+            .catch((err) => {
+                console.log("Error: ", err);
+            })
+            .finally(() => {
+                // Kill the prompt
+                this.addFileInput = undefined;
+                this.addFileTypeInput = undefined;
+                this.handleDialogCancel();
+
+                this.reloadFileList();
+            });
     }
 
     handleAddFolderRequest() {
-        console.log("Will handle Add Folder Request here");
         const newFolderName = this.addFolderInput.value;
         const existingPath = this.state.workspaceDialogInfo.rootPath;
 
-        console.log("Sending ", existingPath, newFolderName);
+        const newPath = existingPath + "/" + newFolderName;
 
-        this.addFolderInput = undefined;
-        this.handleDialogCancel();
+        addFolder(this.state.projectId, newPath)
+            .then((result) => {
+                // TODO We should move the status handling code into api
+                if (result.status !== 200) {
+                    // Invalid response code
+                    result.json()
+                        .then((response) => {
+                            console.warn("(" + result.status + ") ", response);
+                        });
+                }
+            })
+            .catch((err) => {
+                console.log("Error: ", err);
+            })
+            .finally(() => {
+                // Kill the prompt
+                this.addFolderInput = undefined;
+                this.handleDialogCancel();
+
+                this.reloadFileList();
+            });
+    }
+
+    handleDeleteArtifact(isFolder) {
+        const existingPath = this.state.workspaceDialogInfo.rootPath;
+
+        deleteArtifact(this.state.projectId, existingPath, isFolder)
+            .then((result) => {
+                // TODO We should move the status handling code into api
+                if (result.status !== 200) {
+                    // Invalid response code
+                    result.json()
+                        .then((response) => {
+                            console.warn("(" + result.status + ") ", response);
+                        });
+                }
+            })
+            .catch((err) => {
+                console.log("Error: ", err);
+            })
+            .finally(() => {
+                // Kill the prompt
+                this.handleDialogCancel();
+
+                this.reloadFileList();
+            });
     }
 
     handleDialogCancel() {
@@ -313,13 +469,29 @@ class AppMain extends Component {
                                     <span>File Name:</span>
                                     <input className="pt-input pt-fill"
                                            type="text"
-                                           ref={(inputElt) => {this.addFolderInput = inputElt}}/>
+                                           ref={(inputElt) => {this.addFileInput = inputElt}}/>
                                     <span>File Type:</span>
                                     <div className="pt-select pt-fill">
-                                        <select>
-                                            <option selected>One</option>
+                                        <select ref={(selElt) => { this.addFileTypeInput = selElt}}>
+                                            {
+                                                wsDialogInfo.fileTypes.map((typeInfo) => {
+                                                    return <option value={typeInfo.fileType}>{typeInfo.displayText}</option>;
+                                                })
+                                            }
                                         </select>
                                     </div>
+                                </div>;
+            }
+            else if (wsDialogInfo.type === "deleteFolder") {
+                dialogTitle = "Delete Folder";
+                dialogContent = <div className="pt-dialog-body">
+                                    <span>Delete {wsDialogInfo.rootPath}?</span>
+                                </div>;
+            }
+            else if (wsDialogInfo.type === "deleteFile") {
+                dialogTitle = "Delete File";
+                dialogContent = <div className="pt-dialog-body">
+                                    <span>Delete {wsDialogInfo.rootPath}?</span>
                                 </div>;
             }
 
@@ -336,6 +508,19 @@ class AppMain extends Component {
                                         <Button intent={Intent.PRIMARY}
                                                 text="Add"
                                                 onClick={addHandler}/>
+                                    </div>
+                                </div>;
+            }
+            else if (wsDialogInfo.type === "deleteFile" || wsDialogInfo.type === "deleteFolder") {
+                var deleteHandler = this.handleDeleteArtifact.bind(this, (wsDialogInfo.type === "deleteFolder"));
+
+                dialogFooter = <div className="pt-dialog-footer">
+                                    <div className="pt-dialog-footer-actions">
+                                        <Button text="Cancel"
+                                                onClick={this.handleDialogCancel.bind(this)}/>
+                                        <Button intent={Intent.DANGER}
+                                                text="Delete"
+                                                onClick={deleteHandler}/>
                                     </div>
                                 </div>;
             }
