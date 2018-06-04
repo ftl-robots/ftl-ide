@@ -3,13 +3,13 @@ const bodyParser = require('body-parser')
 const path = require('path');
 const Moniker = require('moniker');
 
-const ProjectManager = require('./server/project-manager');
+const ProjectServer = require('./server/project-server');
 
 const app = express();
 const router = express.Router();
 
-const projectMgr = new ProjectManager();
-projectMgr.getAllProjects()
+const projectServer = new ProjectServer();
+projectServer.getAllProjects()
     .then((projects) => {
         console.log('projects: ', projects);
     })
@@ -27,7 +27,7 @@ app.get('/', function (req, res) {
 // Template
 router.route('/templates')
     .get((req, res) => {
-        projectMgr.templateManager.getTemplatesAsListP()
+        projectServer.templateManager.getTemplatesAsListP()
             .then((templates) => {
                 res.json(templates);
             });
@@ -36,7 +36,7 @@ router.route('/templates')
 // TemplateInfo
 router.route("/templates/:template_name")
     .get((req, res) => {
-        projectMgr.templateManager.getTemplateInfoP(req.params.template_name)
+        projectServer.templateManager.getTemplateInfoP(req.params.template_name)
             .then((templateInfo) => {
                 if (templateInfo) {
                     res.json(templateInfo);
@@ -53,13 +53,13 @@ router.route("/templates/:template_name")
 // Project routes
 router.route('/projects')
     .get((req, res) => {
-        projectMgr.getAllProjects()
+        projectServer.getAllProjects()
             .then((projects) => {
                 res.json(projects);
             });
     })
     .post((req, res) => {
-        projectMgr.createProject(req.body.projectType)
+        projectServer.createProject(req.body.projectType)
             .then((createProjectStatus) => {
                 res.json(createProjectStatus);
             });
@@ -67,7 +67,7 @@ router.route('/projects')
 
 router.route('/projects/:project_id')
     .get((req, res) => {
-        projectMgr.getProjectInfo(req.params.project_id)
+        projectServer.getProjectInfo(req.params.project_id)
             .then((projectInfo) => {
                 if (!projectInfo.error) {
                     res.json(projectInfo);
@@ -90,7 +90,7 @@ router.route('/projects/:project_id')
 
 router.route("/projects/:project_id/filetypes")
     .get((req, res) => {
-        projectMgr.getValidProjectFileTypes(req.params.project_id)
+        projectServer.getValidProjectFileTypes(req.params.project_id)
             .then((validFileTypes) => {
                 res.json(validFileTypes);
             })
@@ -104,7 +104,7 @@ router.route("/projects/:project_id/filetypes")
 
 router.route('/projects/:project_id/files')
     .get((req, res) => {
-        projectMgr.getProjectAllFiles(req.params.project_id)
+        projectServer.getProjectAllFiles(req.params.project_id)
             .then((files) => {
                 res.json(files);
             })
@@ -116,7 +116,7 @@ router.route('/projects/:project_id/files')
 
 router.route('/projects/:project_id/files/:file_path')
     .get((req, res) => {
-        projectMgr.getProjectFile(req.params.project_id, req.params.file_path)
+        projectServer.getProjectFile(req.params.project_id, req.params.file_path)
             .then((fileInfo) => {
                 if (fileInfo.success) {
                     res.json({
@@ -148,7 +148,7 @@ router.route('/projects/:project_id/files/:file_path')
         const projectId = req.params.project_id;
         const createPath = req.params.file_path;
         if (req.body.createType === "file") {
-            projectMgr.createFileFromTemplate(projectId, createPath, req.body.templateName)
+            projectServer.createFileFromTemplate(projectId, createPath, req.body.templateName)
                 .then((result) => {
                     if (result.success) {
                         res.json({
@@ -172,7 +172,7 @@ router.route('/projects/:project_id/files/:file_path')
                 });
         }
         else if (req.body.createType === "folder") {
-            projectMgr.createFolder(projectId, createPath)
+            projectServer.createFolder(projectId, createPath)
             .then((result) => {
                 if (result.success) {
                     res.json({
@@ -208,7 +208,7 @@ router.route('/projects/:project_id/files/:file_path')
         const projectId = req.params.project_id;
         const filePath = req.params.file_path
 
-        projectMgr.updateFileContents(projectId, filePath, req.body.update, req.body.isDiff)
+        projectServer.updateFileContents(projectId, filePath, req.body.update, req.body.isDiff)
             .then((results) => {
                 if (results.success) {
                     res.json({
@@ -236,7 +236,7 @@ router.route('/projects/:project_id/files/:file_path')
         const projectId = req.params.project_id;
         const deletePath = req.params.file_path;
         if (req.body.deleteType === "file") {
-            projectMgr.deleteFile(projectId, deletePath)
+            projectServer.deleteFile(projectId, deletePath)
                 .then((result) => {
                     if (result.success) {
                         res.json({
@@ -260,7 +260,7 @@ router.route('/projects/:project_id/files/:file_path')
                 });
         }
         else if (req.body.deleteType === "folder") {
-            projectMgr.deleteFolder(projectId, deletePath)
+            projectServer.deleteFolder(projectId, deletePath)
                 .then((result) => {
                     if (result.success) {
                         res.json({

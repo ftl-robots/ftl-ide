@@ -20,7 +20,7 @@ const PROJECT_TEMPLATES_DIR = Path.join(__dirname, "project-templates");
  * project type, file system location, etc
  */
 
-class ProjectManager extends EventEmitter {
+class ProjectServer extends EventEmitter {
     constructor(opts) {
         super();
 
@@ -46,6 +46,7 @@ class ProjectManager extends EventEmitter {
                         this.d_projects[projectInfo.projectId] = projectInfo;
                     });
                 })
+                // Wait for the template manager to be ready
                 .then(this.d_templateMgr.readyP)
                 .then(() => {
                     resolve();
@@ -586,4 +587,4 @@ class ProjectManager extends EventEmitter {
     }
 }
 
-module.exports = ProjectManager;
+module.exports = ProjectServer;
