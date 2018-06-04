@@ -46,7 +46,7 @@ class ProjectManager extends EventEmitter {
                         this.d_projects[projectInfo.projectId] = projectInfo;
                     });
                 })
-                .then(this.d_templateMgr.readyP())
+                .then(this.d_templateMgr.readyP)
                 .then(() => {
                     resolve();
                 })

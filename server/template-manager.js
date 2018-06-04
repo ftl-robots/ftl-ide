@@ -55,7 +55,7 @@ class TemplateManager {
         return this.d_readyP;
     }
 
-    readyP() {
+    get readyP() {
         return this.d_readyP;
     }
 
