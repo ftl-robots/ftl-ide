@@ -1,0 +1,12 @@
+{
+    "description": "Basic Robot (WPILib) Java Program",
+    "newFileTypes": [
+        {
+            "fileType": "wpilib-java-simple-class",
+            "displayText": "Simple Java Class",
+            "extension": "java"
+        }
+    ],
+    "srcPath": "./src",
+    "buildInfo": {}
+}

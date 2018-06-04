@@ -5,6 +5,7 @@ const fs = require('fs-extra');
 const Moniker = require('moniker');
 const Diff = require('diff');
 
+const TemplateManager = require("./template-manager");
 
 const FileStructureTypes = {
     FOLDER: 'folder',
@@ -27,10 +28,9 @@ class ProjectManager extends EventEmitter {
 
         this.d_projectFSRoot = opts.fsRoot || Path.resolve(__dirname, "..", "ftl-projects");
         this.d_projects = {}; // Key: Project ID, value, project details
-        this.d_templates = [];
 
-        // Store a key-ed set of project type -> info
-        this.d_templateInfo = {};
+        // Template manager
+        this.d_templateMgr = new TemplateManager(PROJECT_TEMPLATES_DIR);
 
         this.reinitialize();
     }
@@ -46,16 +46,7 @@ class ProjectManager extends EventEmitter {
                         this.d_projects[projectInfo.projectId] = projectInfo;
                     });
                 })
-                .then(this._getProjectTemplatesInternal)
-                .then((projectTemplates) => {
-                    this.d_templates = projectTemplates;
-                    projectTemplates.forEach((template) => {
-                        this.d_templateInfo[template.templateName] = {
-                            newFileTypes: template.newFileTypes,
-                            buildInfo: template.buildInfo
-                        };
-                    });
-                })
+                .then(this.d_templateMgr.readyP())
                 .then(() => {
                     resolve();
                 })
@@ -66,18 +57,8 @@ class ProjectManager extends EventEmitter {
         return this.d_readyP;
     }
 
-    getProjectTemplates() {
-        return this.d_readyP
-            .then(() => {
-                return this.d_templates;
-            });
-    }
-
-    getTemplateInfo(templateName) {
-        return this.d_readyP
-            .then(() => {
-                return this.d_templateInfo[templateName];
-            });
+    get templateManager() {
+        return this.d_templateMgr;
     }
 
     getAllProjects() {
@@ -351,18 +332,15 @@ class ProjectManager extends EventEmitter {
                 // Find the project type
                 const projInfo = this.d_projects[projectId];
                 if (projInfo) {
-                    const templateInfo = this.d_templateInfo[projInfo.projectType];
-                    if (templateInfo) {
-                        if (templateInfo.newFileTypes) {
-                            return templateInfo.newFileTypes;
-                        }
-                        else {
-                            return [];
-                        }
-                    }
-                    else {
-                        throw "Invalid project type '" + projInfo.projectType + "'";
-                    }
+                    return this.d_templateMgr.getTemplateInfoP(projInfo.projectType)
+                        .then((templateInfo) => {
+                            if (templateInfo) {
+                                return templateInfo.newFileTypes;
+                            }
+                            else {
+                                return [];
+                            }
+                        });
                 }
                 else {
                     throw "No project info found for '" + projectId + "'";

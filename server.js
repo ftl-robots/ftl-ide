@@ -27,7 +27,7 @@ app.get('/', function (req, res) {
 // Template
 router.route('/templates')
     .get((req, res) => {
-        projectMgr.getProjectTemplates()
+        projectMgr.templateManager.getTemplatesAsListP()
             .then((templates) => {
                 res.json(templates);
             });
@@ -36,7 +36,7 @@ router.route('/templates')
 // TemplateInfo
 router.route("/templates/:template_name")
     .get((req, res) => {
-        projectMgr.getTemplateInfo(req.params.template_name)
+        projectMgr.templateManager.getTemplateInfoP(req.params.template_name)
             .then((templateInfo) => {
                 if (templateInfo) {
                     res.json(templateInfo);
