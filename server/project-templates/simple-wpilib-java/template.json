@@ -7,6 +7,6 @@
             "extension": "java"
         }
     ],
-    "srcPath": "./src",
+    "srcDir": "./src",
     "buildInfo": {}
 }

@@ -115,6 +115,25 @@ class TemplateManager {
             });
     }
 
+    getTemplatePathP(templateName) {
+        return this.d_readyP
+            .then(() => {
+                return Path.join(this.d_templateDir, templateName, "template");
+            });
+    }
+
+    getTemplateFileP(templateName, fileKey) {
+        return this.d_readyP
+            .then(() => {
+                const fileTemplatePath = Path.join(this.d_templateDir, templateName, "newfile-templates", fileKey + ".template");
+                return fs.readFile(fileTemplatePath)
+                    .then((results) => {
+                        return results.toString();
+                    });
+                    // Let errors bubble
+            });
+    }
+
     // =============== INTERNAL HELPER METHODS ================
 
     /**

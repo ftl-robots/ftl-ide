@@ -9,10 +9,6 @@ const app = express();
 const router = express.Router();
 
 const projectServer = new ProjectServer();
-projectServer.getAllProjects()
-    .then((projects) => {
-        console.log('projects: ', projects);
-    })
 
 app.use(express.static(path.join(__dirname, 'build')));
 app.use(bodyParser.urlencoded({extended:true}));

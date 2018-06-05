@@ -6,6 +6,8 @@ const Moniker = require('moniker');
 const Diff = require('diff');
 
 const TemplateManager = require("./template-manager");
+const ProjectFileSystemManager = require("./project-fs-manager");
+const Utils = require("./utils");
 
 const FileStructureTypes = {
     FOLDER: 'folder',
@@ -32,7 +34,11 @@ class ProjectServer extends EventEmitter {
         // Template manager
         this.d_templateMgr = new TemplateManager(PROJECT_TEMPLATES_DIR);
 
+        this.d_fsMgr = new ProjectFileSystemManager(this.d_projectFSRoot);
+
         this.reinitialize();
+
+        // TEST
     }
 
     reinitialize() {
@@ -40,7 +46,7 @@ class ProjectServer extends EventEmitter {
             this.d_projects = {};
 
             // Do house keeping tasks like grabbing the current list of projects
-            this._getAllProjectsInternal()
+            this.d_fsMgr.getAllProjectsP()
                 .then((projectList) => {
                     projectList.forEach((projectInfo) => {
                         this.d_projects[projectInfo.projectId] = projectInfo;
@@ -84,26 +90,36 @@ class ProjectServer extends EventEmitter {
                 return newProjName;
             })
             .then((projId) => {
-                // Create the project folder
-                const projPath = Path.join(this.d_projectFSRoot, projId);
-                return fs.ensureDir(projPath)
-                    .then(() => {
-                        return {
-                            projectId: projId,
-                            projectPath: projPath
-                        };
-                    });
+                return this.d_fsMgr.initializeProjectSpace(projId)
             })
             .then((projInfo) => {
-                // Generate the workspace file and template
-                return this._createProjectStructure(projInfo.projectId,
-                                                    projInfo.projectPath,
-                                                    projectType)
-                    .then(() => {
-                        return {
+                // Get template info (for srcDir), and copy over the templates
+                return this.d_templateMgr.getTemplateInfoP(projectType)
+                    .then((templateInfo) => {
+                        if (!templateInfo) {
+                            throw "Invalid template name provided";
+                        }
+
+                        const wkspaceFileContents = {
                             projectId: projInfo.projectId,
-                            success: true
+                            projectType: projectType,
+                            srcDir: templateInfo.srcDir
                         };
+
+                        return this.d_fsMgr.writeWkspaceFile(projInfo.projectId, wkspaceFileContents)
+                            .then(() => {
+                                return this.d_templateMgr.getTemplatePathP(projectType)
+                                    .then((templatePath) => {
+                                        return this.d_fsMgr.copyTemplateContents(projInfo.projectId, templatePath);
+                                    });
+                            })
+                            .then(this.reinitialize.bind(this))
+                            .then(() => {
+                                return {
+                                    projectId: projInfo.projectId,
+                                    success: true
+                                };
+                            });
                     });
             })
             .catch((err) => {
@@ -118,33 +134,14 @@ class ProjectServer extends EventEmitter {
     getProjectAllFiles(projectId) {
         return this.d_readyP
             .then(() => {
-                const projPath = Path.join(this.d_projectFSRoot, projectId);
-                return this._getFolderContents(projPath, "/");
+                return this.d_fsMgr.getProjectFileListP(projectId);
             });
     }
 
     getProjectFile(projectId, projectFilePath) {
         return this.d_readyP
             .then(() => {
-                var filePath = Path.join(this.d_projectFSRoot, projectId, projectFilePath);
-
-                return fs.readFile(filePath)
-                    .then((fileData) => {
-                        return {
-                            success: true,
-                            projectId: projectId,
-                            filePath: projectFilePath,
-                            contents: fileData.toString()
-                        };
-                    })
-                    .catch((err) => {
-                        return {
-                            success: false,
-                            projectId: projectId,
-                            filePath: projectFilePath,
-                            error: err
-                        };
-                    });
+                return this.d_fsMgr.readProjectFileP(projectId, projectFilePath);
             });
     }
 
@@ -175,156 +172,55 @@ class ProjectServer extends EventEmitter {
     updateFileContents(projectId, filePath, update, isDiff) {
         return this.d_readyP
             .then(() => {
-                return this.getProjectFile(projectId, filePath)
-                    .then((fileInfo) => {
-                        var oldValue = fileInfo.contents;
-                        var newValue;
-                        if (isDiff) {
-                            newValue = Diff.applyPatch(oldValue, update);
-                        }
-                        else {
-                            newValue = update;
-                        }
-                        return newValue;
-                    })
-                    .then((newFileContents) => {
-                        const savePath = Path.join(this.d_projectFSRoot, projectId, filePath);
-                        return fs.writeFile(savePath, newFileContents)
-                            .then(() => {
-                                return {
-                                    success: true
-                                };
-                            });
-
-                    })
-                    .catch((err) => {
-                        return {
-                            success: false,
-                            error: err
-                        };
-                    })
-            })
+                return this.d_fsMgr.writeProjectFileP(projectId, filePath, update);
+            });
     }
 
     createFolder(projectId, folderPath) {
         return this.d_readyP
             .then(() => {
-                const newFolderPath = Path.join(this.d_projectFSRoot, projectId, folderPath);
-                return fs.mkdir(newFolderPath)
-                    .then(() => {
-                        return {
-                            success: true
-                        }
-                    })
-                    .catch((err) => {
-                        return {
-                            success: false,
-                            error: err
-                        }
-                    });
+                return this.d_fsMgr.createProjectFolder(projectId, folderPath);
             });
     }
 
     deleteFolder(projectId, folderPath) {
         return this.d_readyP
             .then(() => {
-                const delFolderPath = Path.join(this.d_projectFSRoot, projectId, folderPath);
-                return fs.rmdir(delFolderPath)
-                    .then(() => {
-                        return {
-                            success: true
-                        }
-                    })
-                    .catch((err) => {
-                        return {
-                            success: false,
-                            error: err
-                        }
-                    });
+                return this.d_fsMgr.deleteProjectFolder(projectId, folderPath);
             });
     }
 
     deleteFile(projectId, filePath) {
         return this.d_readyP
             .then(() => {
-                const delFilePath = Path.join(this.d_projectFSRoot, projectId, filePath);
-                return fs.unlink(delFilePath)
-                    .then(() => {
-                        return {
-                            success: true
-                        }
-                    })
-                    .catch((err) => {
-                        return {
-                            success: false,
-                            error: err
-                        }
-                    });
+                return this.d_fsMgr.deleteProjectFile(projectId, filePath);
             });
     }
 
     createFileFromTemplate(projectId, filePath, fileTemplateType) {
-        return this.d_readyP
-            .then(() => {
-                const newFilePath = Path.join(this.d_projectFSRoot, projectId, filePath);
-                // Generate the template
-                return this.getValidProjectFileTypes(projectId)
-                    .then((validFileTypes) => {
-                        // match the file types
-                        var fileTemplateFound = false;
-                        for (var i = 0; i < validFileTypes.length; i++) {
-                            if (fileTemplateType === validFileTypes[i].fileType) {
-                                fileTemplateFound = true;
-                                break;
-                            }
-                        }
+        return this.getProjectInfo(projectId)
+            .then((projInfo) => {
+                return this.d_templateMgr.getTemplateFileP(projInfo.projectType, fileTemplateType)
+                    .then((templateContents) => {
+                        // Set up the regex replacements
+                        var replacementInputs = {
+                            fileDirname: Path.dirname(filePath),
+                            fileExt: Path.extname(filePath),
+                            fileName: Path.basename(filePath, Path.extname(filePath))
+                        };
 
-                        if (!fileTemplateFound) {
-                            throw "Invalid fileTemplateType '" + fileTemplateType + "'";
-                        }
+                        var replacements = Utils.generateTemplateReplacements(replacementInputs);
+                        // Do replacements
+                        Object.keys(replacements).forEach((placeholder) => {
+                            var replacementVal = replacements[placeholder];
+                            var matcher = new RegExp(placeholder, "g");
+                            templateContents = templateContents.replace(matcher, replacementVal);
+                        });
 
-                        return this._getNewFileTemplateInternal(this.d_projects[projectId].projectType, fileTemplateType)
-                            .then((templateContents) => {
-                                var fileDirname = Path.dirname(filePath);
-                                var fileExt = Path.extname(filePath);
-                                var fileName = Path.basename(filePath, fileExt);
-
-                                var templateContentsStr = templateContents.toString();
-
-                                // Generate the list of constants
-                                var splitDir = fileDirname.split("/");
-                                if (!splitDir[0]) {
-                                    splitDir.splice(0, 1);
-                                }
-                                var javaClassPackage = splitDir.join(".");
-                                var javaClassName = fileName;
-                                var replacements = {
-                                    "%NEW_JAVA_CLASS_PACKAGE%": javaClassPackage,
-                                    "%NEW_JAVA_CLASS_NAME%": javaClassName
-                                };
-
-                                // Do replacements
-                                Object.keys(replacements).forEach((placeholder) => {
-                                    var replacementVal = replacements[placeholder];
-                                    var matcher = new RegExp(placeholder, "g");
-                                    templateContentsStr = templateContentsStr.replace(matcher, replacementVal);
-                                });
-
-                                return fs.writeFile(newFilePath, templateContentsStr)
-                                    .then(() => {
-                                        return {
-                                            success: true
-                                        };
-                                    })
-                                    .catch((err) => {
-                                        return {
-                                            success: false,
-                                            error: err
-                                        };
-                                    });
-                            });
+                        return this.d_fsMgr.writeProjectFileP(projectId, filePath, templateContents);
                     });
             });
+
     }
 
     getValidProjectFileTypes(projectId) {
@@ -352,239 +248,8 @@ class ProjectServer extends EventEmitter {
     // ==================================================
     // INTERNAL HELPER FUNCTIONS
     // ==================================================
-    _getFolderContents(path, relPath) {
-        return fs.readdir(path)
-            .then((files) => {
-                var statPromises = [];
-                files.forEach((file) => {
-                    var filePath = Path.join(path, file);
-                    statPromises.push(fs.stat(filePath));
-                });
 
-                return Promise.all(statPromises)
-                    .then((statResults) => {
-                        var statResultList = [];
-                        files.forEach((file, idx) => {
-                            statResultList.push({
-                                fileName: file,
-                                filePath: Path.join(path, file),
-                                relPath: Path.join(relPath, file),
-                                isDirectory: statResults[idx].isDirectory()
-                            });
-                        });
 
-                        return statResultList;
-                    });
-            })
-            .then((statResultList) => {
-                var finalPromises = [];
-
-                // statResultList is basically an array of files/folders AT THIS PATH
-                // we will then iterate on this and finally populate the folder structure
-                statResultList.forEach((statResult) => {
-                    if (statResult.isDirectory) {
-                        // If this is a directory, we add the recursive promise
-                        var folderPromise = this._getFolderContents(statResult.filePath, statResult.relPath)
-                            .then((folderResults) => {
-                                return {
-                                    fileName: statResult.fileName,
-                                    filePath: statResult.relPath,
-
-                                    children: folderResults,
-
-                                    type: FileStructureTypes.FOLDER,
-                                    label: statResult.fileName
-                                };
-                            });
-                        finalPromises.push(folderPromise);
-                    }
-                    else {
-                        // Ignore dotfiles
-                        if (statResult.fileName !== '.wkspace') {
-                            finalPromises.push({
-                                fileName: statResult.fileName,
-                                filePath: statResult.relPath,
-
-                                // To match generateTreeNodes
-                                type: FileStructureTypes.ITEM,
-                                label: statResult.fileName,
-                            });
-                        }
-
-                    }
-                });
-
-                return Promise.all(finalPromises);
-            });
-    }
-
-    _createProjectStructure(projectId, projectPath, projectType) {
-        // create and write the wkspace file
-        const wkspaceFilePath = Path.join(projectPath, '.wkspace');
-        const wkspaceFileContents = {
-            projectId: projectId,
-            projectType: projectType
-        };
-
-        return fs.writeJson(wkspaceFilePath, wkspaceFileContents, {
-                spaces: 4
-            })
-            .then(() => {
-                // Create the project template
-                const templateDir = Path.join(PROJECT_TEMPLATES_DIR, projectType, "template");
-                return fs.copy(templateDir, projectPath)
-                    .catch((err) => {
-                        console.log("Could not create project folder: ", err);
-                    });
-            });
-    }
-
-    _getProjectTemplatesInternal() {
-        return fs.readdir(PROJECT_TEMPLATES_DIR)
-            .then((files) => {
-                var statPromises = [];
-                files.forEach((filename) => {
-                    const filePath = Path.join(PROJECT_TEMPLATES_DIR, filename);
-                    var statP = fs.stat(filePath)
-                                    .then((stats) => {
-                                        return {
-                                            fileName: filename,
-                                            filePath: filePath,
-                                            isDir: stats.isDirectory()
-                                        };
-                                    })
-                                    .catch((err) => {
-                                        return {
-                                            fileName: filename,
-                                            filePath: filePath,
-                                            isDir: false
-                                        };
-                                    });
-                    statPromises.push(statP);
-                });
-
-                return Promise.all(statPromises);
-            })
-            .then((statResults) => {
-                var templatePromises = [];
-                statResults.forEach((statResult) => {
-                    if (statResult.isDir) {
-                        var templateDescFilePath = Path.join(statResult.filePath, "template.json");
-                        var templateDescP = fs.readJson(templateDescFilePath)
-                                                .then((templateInfo) => {
-                                                    return {
-                                                        templateName: statResult.fileName,
-                                                        templateDesc: templateInfo.description,
-                                                        // Additional information about a template
-                                                        newFileTypes: templateInfo.newFileTypes,
-                                                        buildInfo: templateInfo.buildInfo
-                                                        // TODO add build instructions etc
-                                                    };
-                                                });
-                        templatePromises.push(templateDescP);
-                    }
-                });
-
-                return Promise.all(templatePromises);
-            })
-            .catch((err) => {
-                console.log('err: ', err);
-                return [];
-            })
-    }
-
-    _getNewFileTemplateInternal(projectType, templateName) {
-        const fileTemplatePath = Path.join(PROJECT_TEMPLATES_DIR, projectType,
-                                           "newfile-templates", templateName + ".template");
-        return fs.readFile(fileTemplatePath);
-
-    }
-
-    _getAllProjectsInternal() {
-        // Create the folder if we haven't already
-        return fs.ensureDir(this.d_projectFSRoot)
-            .then(() => {
-                return fs.readdir(this.d_projectFSRoot)
-                    .then((files) => {
-                        return files;
-                    })
-                    .catch((err) => {
-                        console.log('ERR in readdir: ', err);
-                        return [];
-                    });
-            })
-            .then((files) => {
-                var statPromises = [];
-                files.forEach((filename) => {
-                    const filePath = Path.join(this.d_projectFSRoot, filename);
-                    var statP = fs.stat(filePath)
-                                    .then((stats) => {
-                                        return {
-                                            fileName: filename,
-                                            filePath: filePath,
-                                            isDir: stats.isDirectory(),
-                                            aTime: stats.atime,
-                                            mTime: stats.mtime,
-                                            createTime: stats.birthtime
-                                        }
-                                    })
-                                    .catch((err) => {
-                                        return {
-                                            fileName: filename,
-                                            filePath: filePath,
-                                            isDir: false
-                                        }
-                                    });
-                    statPromises.push(statP);
-                });
-
-                return Promise.all(statPromises);
-            })
-            .then((files) => {
-                var wkspacePromises = [];
-
-                files.forEach((fileInfo) => {
-                    if (fileInfo.isDir) {
-                        var wkspacePath = Path.join(fileInfo.filePath, ".wkspace");
-                        var wkspacePromise = fs.readJson(wkspacePath)
-                                                .then((wkspaceObj) => {
-                                                    return {
-                                                        validProject: true,
-                                                        projectId: fileInfo.fileName,
-                                                        projectPath: fileInfo.filePath,
-                                                        projectType: wkspaceObj.projectType,
-                                                        lastAccessed: fileInfo.aTime,
-                                                        lastModified: fileInfo.mTime,
-                                                        created: fileInfo.createTime
-                                                    };
-                                                })
-                                                .catch((err) => {
-                                                    return {
-                                                        validProject: false
-                                                    };
-                                                });
-                        wkspacePromises.push(wkspacePromise);
-                    }
-                });
-
-                return Promise.all(wkspacePromises)
-                    .then((wkspaceResults) => {
-                        var projectList = [];
-                        wkspaceResults.forEach((wkspace) => {
-                            if (wkspace.validProject) {
-                                delete wkspace.validProject;
-                                projectList.push(wkspace);
-                            }
-                        });
-                        return projectList;
-                    });
-
-            })
-            .catch((err) => {
-                console.log('ERR in getAllProjects: ', err);
-                return [];
-            });
-    }
 }
 
 module.exports = ProjectServer;
