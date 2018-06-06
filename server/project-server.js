@@ -9,10 +9,7 @@ const TemplateManager = require("./template-manager");
 const ProjectFileSystemManager = require("./project-fs-manager");
 const Utils = require("./utils");
 
-const FileStructureTypes = {
-    FOLDER: 'folder',
-    ITEM: 'item'
-};
+
 
 const PROJECT_TEMPLATES_DIR = Path.join(__dirname, "project-templates");
 

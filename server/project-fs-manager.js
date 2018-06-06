@@ -1,6 +1,11 @@
 const Path = require("path");
 const fs = require("fs-extra");
 
+const FileStructureTypes = {
+    FOLDER: 'folder',
+    ITEM: 'item'
+};
+
 class ProjectFileSystemManager {
     constructor(fsRoot) {
         this.d_projectFSRoot = fsRoot;
@@ -332,7 +337,7 @@ class ProjectFileSystemManager {
                                     fileName: statResult.fileName,
                                     filePath: statResult.relPath,
                                     children: folderResults,
-                                    type: "folder",
+                                    type: FileStructureTypes.FOLDER,
                                     label: statResult.fileName
                                 };
                             });
@@ -344,7 +349,7 @@ class ProjectFileSystemManager {
                             finalPromises.push({
                                 fileName: statResult.fileName,
                                 filePath: statResult.relPath,
-                                type: "item",
+                                type: FileStructureTypes.ITEM,
                                 label: statResult.fileName
                             });
                         }
